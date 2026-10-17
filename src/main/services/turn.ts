@@ -168,6 +168,7 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
     })
 
   let raw = await run('')
+  let usedSystemPrompt = systemPrompt
   let parsed: ParsedTurn
   try {
     parsed = parseTurn(raw)
@@ -175,19 +176,33 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
     if (!(error instanceof ProtocolError)) throw error
     console.warn('[turn] 解析失败:', error.message, '\n--- 原始输出 ---\n', raw)
     options.onDelta('')
-    raw = await run(
-      [
-        `上一次输出不符合格式（${error.message}）。`,
-        '本次只输出分隔块，不要任何解释。',
-        '每个块都要用开始和结束标记包起来，例如 <<<EN>>> 与 <<</EN>>>。',
-        '继续对话：输出 EN、ZH（反馈可选）。结束：整轮只输出 <<<END>>> 与 <<</END>>> 中间的一行理由。'
-      ].join('\n')
-    )
+    const correction = [
+      `上一次输出不符合格式（${error.message}）。`,
+      '本次只输出分隔块，不要任何解释。',
+      '每个块都要用开始和结束标记包起来，例如 <<<EN>>> 与 <<</EN>>>。',
+      '继续对话：输出 EN、ZH（反馈可选）。结束：整轮只输出 <<<END>>> 与 <<</END>>> 中间的一行理由。'
+    ].join('\n')
+    usedSystemPrompt = `${systemPrompt}\n\n${correction}`
+    raw = await run(correction)
     try {
       parsed = parseTurn(raw)
     } catch (retryError) {
       console.warn('[turn] 重试后仍失败:', (retryError as Error).message, '\n--- 原始输出 ---\n', raw)
       throw retryError
+    }
+  }
+
+  const debug = {
+    systemPrompt: usedSystemPrompt,
+    userMessage,
+    rawReply: raw,
+    exampleCount: FEWSHOT_MESSAGES.length,
+    exampleChars: FEWSHOT_MESSAGES.reduce((total, item) => total + item.content.length, 0),
+    params: {
+      provider: model.provider,
+      model: model.id,
+      reasoning: settings.provider.reasoningEffort || null,
+      maxTokens: model.maxTokens
     }
   }
 
@@ -199,6 +214,7 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
           messageZh: '',
           ended: true,
           endReason: parsed.reason,
+          debug,
           createdAt: Date.now()
         }
       : {
@@ -207,6 +223,7 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
           messageZh: parsed.zh,
           feedback: parsed.feedback,
           ended: false,
+          debug,
           createdAt: Date.now()
         }
 

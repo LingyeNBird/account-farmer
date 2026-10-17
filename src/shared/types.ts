@@ -97,6 +97,20 @@ export type Feedback = {
   zh: string
 }
 
+export type TurnDebug = {
+  systemPrompt: string
+  userMessage: string
+  rawReply: string
+  exampleCount: number
+  exampleChars: number
+  params: {
+    provider: string
+    model: string
+    reasoning: string | null
+    maxTokens: number
+  }
+}
+
 export type Turn = {
   index: number
   messageEn: string
@@ -106,6 +120,8 @@ export type Turn = {
   reply?: string
   ended: boolean
   endReason?: string
+  /** 本次请求的提示词、参数与原始输出，仅用于排查。 */
+  debug?: TurnDebug
   createdAt: number
 }
 

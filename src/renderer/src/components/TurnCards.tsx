@@ -1,4 +1,4 @@
-import { Badge, Box, Button, Grid, Group, Paper, Text, Textarea } from '@mantine/core'
+import { Badge, Box, Button, Code, Grid, Group, Modal, Paper, Stack, Text, Textarea } from '@mantine/core'
 import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { IconThumbDown, IconThumbUp } from '@tabler/icons-react'
@@ -194,6 +194,7 @@ export function ResultCard({
   onRevert?: () => void
 }) {
   const streaming = streamingText !== null
+  const [logOpen, setLogOpen] = useState(false)
   const en = editedEn ?? turn?.messageEn ?? ''
   const positive = turn?.feedback?.verdict === 'good'
   const dirty = editedEn !== null && editedEn !== (turn?.messageEn ?? '')
@@ -234,6 +235,9 @@ export function ResultCard({
                   <Badge variant="light" color="gray" radius="sm">
                     {sentences(en)} 句
                   </Badge>
+                  <Button size="compact-sm" variant="default" onClick={() => setLogOpen(true)}>
+                    日志
+                  </Button>
                   <CopyButton text={en} label="复制正文" />
                 </>
               )}
@@ -312,6 +316,45 @@ export function ResultCard({
             </Box>
           )}
         </>
+      )}
+
+      {turn?.debug && (
+        <Modal
+          opened={logOpen}
+          onClose={() => setLogOpen(false)}
+          title="本次生成请求"
+          size="xl"
+          styles={{ body: { maxHeight: '70vh', overflow: 'auto' } }}
+        >
+          <Stack gap="sm">
+            <Text size="xs" c="dimmed">
+              {turn.debug.params.provider}/{turn.debug.params.model} · 推理{' '}
+              {turn.debug.params.reasoning ?? '未开启'} · maxTokens {turn.debug.params.maxTokens} · 示例{' '}
+              {turn.debug.exampleCount} 条（{turn.debug.exampleChars} 字符）
+            </Text>
+
+            <Text size="sm" fw={600}>
+              系统提示词
+            </Text>
+            <Code block style={{ whiteSpace: 'pre-wrap' }}>
+              {turn.debug.systemPrompt}
+            </Code>
+
+            <Text size="sm" fw={600}>
+              本轮用户消息
+            </Text>
+            <Code block style={{ whiteSpace: 'pre-wrap' }}>
+              {turn.debug.userMessage}
+            </Code>
+
+            <Text size="sm" fw={600}>
+              模型原始输出
+            </Text>
+            <Code block style={{ whiteSpace: 'pre-wrap' }}>
+              {turn.debug.rawReply}
+            </Code>
+          </Stack>
+        </Modal>
       )}
     </Paper>
   )
