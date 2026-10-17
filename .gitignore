@@ -10,3 +10,9 @@ release/
 DEVELOPMENT.md
 TODO.md
 design/
+
+# 本地实验脚本与产物（不进仓库）
+scripts/llm-service.mjs
+scripts/experiment.ts
+scripts/.llm-service-port
+scripts/.experiment-*.md
