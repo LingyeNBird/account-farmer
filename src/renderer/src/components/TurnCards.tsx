@@ -53,7 +53,17 @@ export function OutgoingCard({ en, zh }: { en: string; zh: string }) {
       <CardHeader
         step={1}
         title="发给目标 AI"
-        right={<CopyButton text={en} label="复制英文" />}
+        right={
+          <Group gap={6} wrap="nowrap">
+            <Badge variant="light" color="gray" radius="sm">
+              {words(en)} 词
+            </Badge>
+            <Badge variant="light" color="gray" radius="sm">
+              {sentences(en)} 句
+            </Badge>
+            <CopyButton text={en} label="复制英文" />
+          </Group>
+        }
       />
       <Grid gap="lg" p="md">
         <Grid.Col span={6}>
@@ -69,14 +79,6 @@ export function OutgoingCard({ en, zh }: { en: string; zh: string }) {
           </Text>
         </Grid.Col>
       </Grid>
-      <Group gap={6} px="md" pb="sm">
-        <Badge variant="light" color="gray" radius="sm">
-          {words(en)} 词
-        </Badge>
-        <Badge variant="light" color="gray" radius="sm">
-          {sentences(en)} 句
-        </Badge>
-      </Group>
     </Paper>
   )
 }
