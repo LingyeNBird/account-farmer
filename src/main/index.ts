@@ -1,5 +1,6 @@
 import { join } from 'node:path'
 import { BrowserWindow, app, shell } from 'electron'
+import { registerIpcHandlers } from './ipc'
 
 const APP_ID = 'com.aiaccountnurturing.app'
 
@@ -47,6 +48,7 @@ if (!app.requestSingleInstanceLock()) {
 
   void app.whenReady().then(() => {
     app.setAppUserModelId(APP_ID)
+    registerIpcHandlers()
     createWindow()
 
     app.on('activate', () => {

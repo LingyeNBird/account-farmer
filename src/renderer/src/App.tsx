@@ -1,5 +1,6 @@
 import { AppShell, Button, Group, Text } from '@mantine/core'
 import { IconFileText, IconSettings, IconUser } from '@tabler/icons-react'
+import { useEffect } from 'react'
 import { useAppStore } from './store'
 import { Accounts } from './screens/Accounts'
 import { Prompts } from './screens/Prompts'
@@ -9,6 +10,18 @@ import { Workbench } from './screens/Workbench'
 export function App() {
   const view = useAppStore((state) => state.view)
   const setView = useAppStore((state) => state.setView)
+  const accounts = useAppStore((state) => state.accounts)
+  const currentAccountId = useAppStore((state) => state.currentAccountId)
+  const modelId = useAppStore((state) => state.settings?.provider.modelId)
+  const refreshAccounts = useAppStore((state) => state.refreshAccounts)
+  const refreshSettings = useAppStore((state) => state.refreshSettings)
+
+  useEffect(() => {
+    void refreshAccounts()
+    void refreshSettings()
+  }, [refreshAccounts, refreshSettings])
+
+  const currentAccountName = accounts.find((account) => account.id === currentAccountId)?.name
 
   return (
     <AppShell
@@ -29,10 +42,10 @@ export function App() {
               leftSection={<IconUser size={15} />}
               onClick={() => setView('accounts')}
             >
-              账号
+              {currentAccountName ?? '无账号'}
             </Button>
             <Text size="xs" c="dimmed" px="xs">
-              未配置模型
+              {modelId || '未配置模型'}
             </Text>
             <Button
               variant="subtle"
