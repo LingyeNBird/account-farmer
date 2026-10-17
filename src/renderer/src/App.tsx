@@ -1,6 +1,8 @@
 import { AppShell, Button, Group, Text } from '@mantine/core'
 import { IconFileText, IconSettings, IconUser } from '@tabler/icons-react'
 import { useEffect, useRef } from 'react'
+import { api } from './api'
+import { TopicQueue } from './components/TopicQueue'
 import { isConfigured } from './readiness'
 import { useAppStore } from './store'
 import { Accounts } from './screens/Accounts'
@@ -24,13 +26,46 @@ export function App() {
   const currentAccountId = useAppStore((state) => state.currentAccountId)
   const settings = useAppStore((state) => state.settings)
   const hasKey = useAppStore((state) => state.hasKey)
+  const topics = useAppStore((state) => state.topics)
+  const topicsLoadedFor = useAppStore((state) => state.topicsLoadedFor)
+  const generating = useAppStore((state) => state.generating)
   const refreshAccounts = useAppStore((state) => state.refreshAccounts)
   const refreshSettings = useAppStore((state) => state.refreshSettings)
+  const loadTopics = useAppStore((state) => state.loadTopics)
+  const generateTopics = useAppStore((state) => state.generateTopics)
 
   useEffect(() => {
     void refreshAccounts()
     void refreshSettings()
   }, [refreshAccounts, refreshSettings])
+
+  useEffect(() => {
+    if (!currentAccountId) return
+    void loadTopics()
+  }, [currentAccountId, loadTopics])
+
+  useEffect(
+    () =>
+      api.onTopicProgress((progress) => {
+        if (progress.accountId === useAppStore.getState().currentAccountId) {
+          useAppStore.getState().setGenerating(progress)
+        }
+      }),
+    []
+  )
+
+  const attempted = useRef<string | null>(null)
+  const configured = isConfigured(settings, hasKey)
+  useEffect(() => {
+    attempted.current = null
+  }, [currentAccountId])
+  useEffect(() => {
+    if (!currentAccountId || !configured || generating) return
+    if (topicsLoadedFor !== currentAccountId) return
+    if (topics.length > 0 || attempted.current === currentAccountId) return
+    attempted.current = currentAccountId
+    void generateTopics()
+  }, [currentAccountId, configured, generating, topicsLoadedFor, topics.length, generateTopics])
 
   const routed = useRef(false)
   useEffect(() => {
@@ -96,7 +131,9 @@ export function App() {
         </Group>
       </AppShell.Header>
 
-      <AppShell.Navbar p={0} />
+      <AppShell.Navbar p={0}>
+        <TopicQueue />
+      </AppShell.Navbar>
 
       <AppShell.Main h="calc(100vh - 48px)" style={{ overflow: 'auto' }}>
         {view === 'workbench' && <Workbench />}

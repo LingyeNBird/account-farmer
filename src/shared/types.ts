@@ -86,6 +86,13 @@ export type Topic = {
   archivedAt?: number
 }
 
+export type TopicDraft = {
+  title: string
+  domains: string[]
+  openingEn: string
+  openingZh: string
+}
+
 export type Feedback = {
   verdict: 'good' | 'bad'
   en: string

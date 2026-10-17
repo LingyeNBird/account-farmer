@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { IPC, type Api } from '@shared/ipc'
+import { IPC, type Api, type TopicProgress } from '@shared/ipc'
 
 const api: Api = {
   listAccounts: () => ipcRenderer.invoke(IPC.accountsList),
@@ -14,7 +14,17 @@ const api: Api = {
   clearApiKey: () => ipcRenderer.invoke(IPC.settingsKeyClear),
   testConnection: (provider, apiKey) => ipcRenderer.invoke(IPC.settingsTest, provider, apiKey),
   listProviders: () => ipcRenderer.invoke(IPC.llmProviders),
-  listModels: (providerId) => ipcRenderer.invoke(IPC.llmModels, providerId)
+  listModels: (providerId) => ipcRenderer.invoke(IPC.llmModels, providerId),
+  listTopics: (accountId) => ipcRenderer.invoke(IPC.topicsList, accountId),
+  generateTopics: (accountId) => ipcRenderer.invoke(IPC.topicsGenerate, accountId),
+  cancelTopicGeneration: (accountId) => ipcRenderer.invoke(IPC.topicsCancel, accountId),
+  onTopicProgress: (handler) => {
+    const listener = (_event: unknown, progress: TopicProgress): void => handler(progress)
+    ipcRenderer.on(IPC.topicsProgress, listener)
+    return () => {
+      ipcRenderer.removeListener(IPC.topicsProgress, listener)
+    }
+  }
 }
 
 contextBridge.exposeInMainWorld('api', api)

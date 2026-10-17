@@ -4,7 +4,8 @@ import type {
   ModelInfo,
   ProviderInfo,
   ProviderSettings,
-  Settings
+  Settings,
+  Topic
 } from './types'
 
 export type IpcResult<T> = { ok: true; data: T } | { ok: false; code: string; message: string }
@@ -22,8 +23,19 @@ export const IPC = {
   settingsKeyClear: 'settings:key-clear',
   settingsTest: 'settings:test',
   llmProviders: 'llm:providers',
-  llmModels: 'llm:models'
+  llmModels: 'llm:models',
+  topicsList: 'topics:list',
+  topicsGenerate: 'topics:generate',
+  topicsCancel: 'topics:cancel',
+  topicsProgress: 'topics:progress'
 } as const
+
+export type TopicProgress = {
+  accountId: string
+  generated: number
+  total: number
+  titles: string[]
+}
 
 export type Api = {
   listAccounts: () => Promise<IpcResult<AccountsState>>
@@ -39,4 +51,8 @@ export type Api = {
   testConnection: (provider: ProviderSettings, apiKey: string) => Promise<IpcResult<string>>
   listProviders: () => Promise<IpcResult<ProviderInfo[]>>
   listModels: (providerId: string) => Promise<IpcResult<ModelInfo[]>>
+  listTopics: (accountId: string) => Promise<IpcResult<Topic[]>>
+  generateTopics: (accountId: string) => Promise<IpcResult<Topic[]>>
+  cancelTopicGeneration: (accountId: string) => Promise<IpcResult<void>>
+  onTopicProgress: (handler: (progress: TopicProgress) => void) => () => void
 }

@@ -1,11 +1,12 @@
-import type { IpcResult } from '@shared/ipc'
+import type { IpcResult, TopicProgress } from '@shared/ipc'
 import type {
   AccountsState,
   AccountSummary,
   ModelInfo,
   ProviderInfo,
   ProviderSettings,
-  Settings
+  Settings,
+  Topic
 } from '@shared/types'
 
 async function unwrap<T>(result: Promise<IpcResult<T>>): Promise<T> {
@@ -29,5 +30,11 @@ export const api = {
   testConnection: (provider: ProviderSettings, apiKey: string): Promise<string> =>
     unwrap(window.api.testConnection(provider, apiKey)),
   listProviders: (): Promise<ProviderInfo[]> => unwrap(window.api.listProviders()),
-  listModels: (providerId: string): Promise<ModelInfo[]> => unwrap(window.api.listModels(providerId))
+  listModels: (providerId: string): Promise<ModelInfo[]> => unwrap(window.api.listModels(providerId)),
+  listTopics: (accountId: string): Promise<Topic[]> => unwrap(window.api.listTopics(accountId)),
+  generateTopics: (accountId: string): Promise<Topic[]> => unwrap(window.api.generateTopics(accountId)),
+  cancelTopicGeneration: (accountId: string): Promise<void> =>
+    unwrap(window.api.cancelTopicGeneration(accountId)),
+  onTopicProgress: (handler: (progress: TopicProgress) => void): (() => void) =>
+    window.api.onTopicProgress(handler)
 }
