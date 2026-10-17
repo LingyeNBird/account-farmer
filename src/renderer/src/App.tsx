@@ -2,7 +2,6 @@ import { AppShell, Button, Group, Text } from '@mantine/core'
 import { IconFileText, IconSettings, IconUser } from '@tabler/icons-react'
 import { useEffect, useRef } from 'react'
 import { api } from './api'
-import { ContentModal } from './components/ContentModal'
 import { TopicQueue } from './components/TopicQueue'
 import { isConfigured } from './readiness'
 import { useAppStore } from './store'
@@ -34,9 +33,6 @@ export function App() {
   const refreshSettings = useAppStore((state) => state.refreshSettings)
   const loadTopics = useAppStore((state) => state.loadTopics)
   const generateTopics = useAppStore((state) => state.generateTopics)
-  const pendingTopicDelete = useAppStore((state) => state.pendingTopicDelete)
-  const confirmDeleteTopic = useAppStore((state) => state.confirmDeleteTopic)
-  const cancelDeleteTopic = useAppStore((state) => state.cancelDeleteTopic)
 
   useEffect(() => {
     void refreshAccounts()
@@ -187,20 +183,6 @@ export function App() {
         {view === 'accounts' && <Accounts />}
         {view === 'prompts' && <Prompts />}
         {view === 'settings' && <Settings />}
-
-        {pendingTopicDelete && (
-          <ContentModal
-            title={`删除主题 ${pendingTopicDelete.seq}`}
-            confirmLabel="删除"
-            danger
-            onConfirm={() => void confirmDeleteTopic()}
-            onCancel={cancelDeleteTopic}
-          >
-            <Text size="sm" c="dimmed">
-              该主题的对话记录会一并删除。
-            </Text>
-          </ContentModal>
-        )}
       </AppShell.Main>
     </AppShell>
   )

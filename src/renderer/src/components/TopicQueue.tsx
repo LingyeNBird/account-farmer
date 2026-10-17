@@ -2,10 +2,12 @@ import {
   ActionIcon,
   Badge,
   Box,
+  Button,
   Group,
   Loader,
   Menu,
   NavLink,
+  Popover,
   ScrollArea,
   Stack,
   Text
@@ -37,9 +39,12 @@ export function TopicQueue() {
   const selectedTopicId = useAppStore((state) => state.selectedTopicId)
   const selectTopic = useAppStore((state) => state.selectTopic)
   const refilling = useAppStore((state) => state.refilling)
-  const requestDeleteTopic = useAppStore((state) => state.requestDeleteTopic)
+  const deleteTopic = useAppStore((state) => state.deleteTopic)
   const [page, setPage] = useState(0)
   const [menuPoint, setMenuPoint] = useState<{ x: number; y: number; topic: Topic } | null>(null)
+  const [confirmPoint, setConfirmPoint] = useState<{ x: number; y: number; topic: Topic } | null>(
+    null
+  )
 
   const batches = groupBatches(topics)
   const safePage = Math.min(page, Math.max(batches.length - 1, 0))
@@ -168,15 +173,57 @@ export function TopicQueue() {
             color="red"
             leftSection={<IconTrash size={14} />}
             onClick={() => {
-              const topic = menuPoint?.topic
+              if (menuPoint) setConfirmPoint(menuPoint)
               setMenuPoint(null)
-              if (topic) requestDeleteTopic(topic)
             }}
           >
             删除主题
           </Menu.Item>
         </Menu.Dropdown>
       </Menu>
+
+      <Popover
+        opened={confirmPoint !== null}
+        onClose={() => setConfirmPoint(null)}
+        position="bottom-start"
+        offset={2}
+        withinPortal
+        shadow="md"
+      >
+        <Popover.Target>
+          <div
+            style={{
+              position: 'fixed',
+              left: confirmPoint?.x ?? 0,
+              top: confirmPoint?.y ?? 0,
+              width: 1,
+              height: 1,
+              pointerEvents: 'none'
+            }}
+          />
+        </Popover.Target>
+        <Popover.Dropdown>
+          <Stack gap={8}>
+            <Text size="sm">删除主题 {confirmPoint?.topic.seq}？</Text>
+            <Group gap={6} justify="flex-end">
+              <Button size="compact-xs" variant="default" onClick={() => setConfirmPoint(null)}>
+                取消
+              </Button>
+              <Button
+                size="compact-xs"
+                color="red"
+                onClick={() => {
+                  const topic = confirmPoint?.topic
+                  setConfirmPoint(null)
+                  if (topic) void deleteTopic(topic.id)
+                }}
+              >
+                删除
+              </Button>
+            </Group>
+          </Stack>
+        </Popover.Dropdown>
+      </Popover>
     </Stack>
   )
 }

@@ -33,10 +33,7 @@ type AppState = {
   generateTurn: (aiReply: string) => Promise<void>
   endTopic: () => Promise<void>
   activateTopic: (topicId: string) => Promise<void>
-  pendingTopicDelete: Topic | null
-  requestDeleteTopic: (topic: Topic) => void
-  cancelDeleteTopic: () => void
-  confirmDeleteTopic: () => Promise<void>
+  deleteTopic: (topicId: string) => Promise<void>
   updateTopicOpening: (topicId: string, openingEn: string, openingZh: string) => Promise<void>
   abortTurn: () => Promise<void>
   generateTopics: () => Promise<void>
@@ -70,7 +67,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   turnLoading: false,
   refilling: false,
   generating: null,
-  pendingTopicDelete: null,
   error: null,
   clearError: () => set({ error: null }),
   setGenerating: (generating) => set({ generating }),
@@ -193,25 +189,21 @@ export const useAppStore = create<AppState>((set, get) => ({
     )
   },
 
-  requestDeleteTopic: (topic) => set({ pendingTopicDelete: topic }),
-  cancelDeleteTopic: () => set({ pendingTopicDelete: null }),
-
-  confirmDeleteTopic: async () => {
+  deleteTopic: async (topicId) => {
     const accountId = get().currentAccountId
-    const target = get().pendingTopicDelete
-    if (!accountId || !target) return
+    if (!accountId) return
     await guard(
       async () => {
-        const topics = await api.deleteTopic(accountId, target.id)
-        const wasSelected = get().selectedTopicId === target.id
+        const topics = await api.deleteTopic(accountId, topicId)
+        const wasSelected = get().selectedTopicId === topicId
         const next = topics.find((topic) => topic.status === 'active') ?? topics[0]
-        set({ topics, pendingTopicDelete: null })
+        set({ topics })
         if (wasSelected) {
           set({ selectedTopicId: next?.id ?? null, session: null })
           if (next) await get().selectTopic(next.id)
         }
       },
-      (message) => set({ error: message, pendingTopicDelete: null })
+      (message) => set({ error: message })
     )
   },
 
