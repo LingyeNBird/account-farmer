@@ -38,11 +38,31 @@ export const PROMPT_CONDITIONS: Partial<Record<PromptKey, string>> = {
 
 /** 由程序固定解析的标记，改写它们会导致解析失败。 */
 export const PROMPT_TAGS: Record<PromptKey, string[]> = {
-  system: ['<<<EN>>>', '<<<ZH>>>', '<<<FB_VERDICT>>>', '<<<FB_EN>>>', '<<<FB_ZH>>>', '<<<END>>>'],
+  system: [
+    '<<<EN>>>',
+    '<<</EN>>>',
+    '<<<ZH>>>',
+    '<<</ZH>>>',
+    '<<<FB_VERDICT>>>',
+    '<<</FB_VERDICT>>>',
+    '<<<FB_EN>>>',
+    '<<</FB_EN>>>',
+    '<<<FB_ZH>>>',
+    '<<</FB_ZH>>>',
+    '<<<END>>>',
+    '<<</END>>>'
+  ],
   turn: [],
   topics: [],
-  feedbackFallback: ['<<<FB_VERDICT>>>', '<<<FB_EN>>>', '<<<FB_ZH>>>'],
-  termination: ['<<<END>>>']
+  feedbackFallback: [
+    '<<<FB_VERDICT>>>',
+    '<<</FB_VERDICT>>>',
+    '<<<FB_EN>>>',
+    '<<</FB_EN>>>',
+    '<<<FB_ZH>>>',
+    '<<</FB_ZH>>>'
+  ],
+  termination: ['<<<END>>>', '<<</END>>>']
 }
 
 export const DEFAULT_PROMPTS: Record<PromptKey, string> = {
@@ -55,21 +75,26 @@ export const DEFAULT_PROMPTS: Record<PromptKey, string> = {
 - 禁止模板句式，例如 "X — that's Y"、"not just X, but Y"、"let's dive in"。
 - 禁止空泛的开场和总结。
 
-输出格式：下面这些块必须完整、正确，标记行原样保留。需要写分析或说明就写在第一个块之前。
+输出格式：每个块都用开始标记和结束标记包起来，标记行各自独占一行、原样保留。分析或说明写在所有块之外。
 
 常规发言按顺序输出两块：
 <<<EN>>>
 要发给对方的英文
+<<</EN>>>
 <<<ZH>>>
 上面的中文对照
+<<</ZH>>>
 
 反馈是节奏信号，不是每轮评语，默认不给。只在下面两种情况追加这三个块，三块必须一起出现：
 <<<FB_VERDICT>>>
 good 或 bad
+<<</FB_VERDICT>>>
 <<<FB_EN>>>
 一句英文反馈
+<<</FB_EN>>>
 <<<FB_ZH>>>
 一句中文反馈
+<<</FB_ZH>>>
 
 - 本轮回复有明确价值、值得作为正样本：verdict 给 good。
 - 本轮回复明显低质、空转或跑题：verdict 给 bad。
@@ -80,6 +105,7 @@ good 或 bad
 只有整段对话已经走完、必须结束时，才不要输出上面任何块，整轮只输出：
 <<<END>>>
 一行理由
+<<</END>>>
 
 ## 结束由你判断
 
@@ -122,6 +148,6 @@ good 或 bad
 
   termination: `判断当前对话是否应当结束。
 - 唯一标准：继续回复是否还能维持这次对话的质量。继续只会让它变差，就结束。
-- 若结束，输出终止轮：只输出 <<<END>>> 与一行理由，不要输出任何正文。
+- 若结束，输出终止轮：<<<END>>> 与 <<</END>>> 之间只写一行理由，不要输出任何正文。
 - 否则正常输出本轮发言。`
 }

@@ -115,7 +115,8 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
       [
         `上一次输出不符合格式（${error.message}）。`,
         '本次只输出分隔块，不要任何解释。',
-        '继续对话：输出 EN、ZH（反馈可选）。结束：整轮只输出 <<<END>>> 与一行理由。'
+        '每个块都要用开始和结束标记包起来，例如 <<<EN>>> 与 <<</EN>>>。',
+        '继续对话：输出 EN、ZH（反馈可选）。结束：整轮只输出 <<<END>>> 与 <<</END>>> 中间的一行理由。'
       ].join('\n')
     )
     try {

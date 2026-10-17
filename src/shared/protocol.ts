@@ -19,7 +19,8 @@ const MARKERS = ['EN', 'ZH', 'FB_VERDICT', 'FB_EN', 'FB_ZH', 'END'] as const
 
 type Marker = (typeof MARKERS)[number]
 
-const MARKER_RE = /^<<<([A-Z_]+)>>>$/
+const OPEN_RE = /^<<<([A-Z_]+)>>>$/
+const CLOSE_RE = /^<<<\/([A-Z_]+)>>>$/
 
 function isMarker(name: string): name is Marker {
   return (MARKERS as readonly string[]).includes(name)
@@ -30,21 +31,31 @@ function readBlocks(raw: string): Map<Marker, string> {
   let current: Marker | null = null
   let buffer: string[] = []
 
-  const flush = (): void => {
-    if (current) blocks.set(current, buffer.join('\n').trim())
-  }
-
   for (const line of raw.replace(/\r\n/g, '\n').split('\n')) {
-    const match = MARKER_RE.exec(line.trim())
-    if (match && isMarker(match[1])) {
-      flush()
-      current = match[1]
+    const text = line.trim()
+    const open = OPEN_RE.exec(text)
+    if (open && isMarker(open[1])) {
+      if (current) throw new ProtocolError(`块 ${current} 缺少结束标记 <<</${current}>>>`)
+      current = open[1]
       buffer = []
       continue
     }
+
+    const close = CLOSE_RE.exec(text)
+    if (close) {
+      if (!current || close[1] !== current) {
+        throw new ProtocolError(`结束标记 <<</${close[1]}>>> 没有对应的开始标记`)
+      }
+      blocks.set(current, buffer.join('\n').trim())
+      current = null
+      buffer = []
+      continue
+    }
+
     if (current) buffer.push(line)
   }
-  flush()
+
+  if (current) throw new ProtocolError(`块 ${current} 缺少结束标记 <<</${current}>>>`)
   return blocks
 }
 
@@ -53,7 +64,7 @@ export function parseTurn(raw: string): ParsedTurn {
   const endBlock = blocks.get('END')
 
   if (endBlock !== undefined) {
-    // 终止优先：模型常把收尾发言和 END 写在同一轮，正文与反馈一律丢弃。
+    // 终止优先：模型常把收尾发言和终止写在同一轮，正文与反馈一律丢弃。
     return { kind: 'end', reason: endBlock }
   }
 
@@ -89,13 +100,18 @@ export function streamingText(raw: string): string {
 
   for (let index = 0; index < lines.length; index += 1) {
     const line = lines[index]
-    const match = MARKER_RE.exec(line.trim())
-    if (match && isMarker(match[1])) {
-      current = match[1]
+    const text = line.trim()
+    const open = OPEN_RE.exec(text)
+    if (open && isMarker(open[1])) {
+      current = open[1]
       buffer = []
       continue
     }
-    if (index === lines.length - 1 && line.trimStart().startsWith('<<<')) continue
+    if (CLOSE_RE.test(text)) {
+      current = null
+      continue
+    }
+    if (index === lines.length - 1 && text.startsWith('<<<')) continue
     if (current === 'EN' || current === 'ZH' || current === 'FB_EN' || current === 'FB_ZH') {
       buffer.push(line)
     }
