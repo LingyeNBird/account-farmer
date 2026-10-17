@@ -13,8 +13,8 @@ import {
   Stack,
   Text
 } from '@mantine/core'
-import { IconChevronLeft, IconChevronRight, IconTrash } from '@tabler/icons-react'
-import { useState } from 'react'
+import { IconChevronLeft, IconChevronRight, IconPlus, IconTrash, IconX } from '@tabler/icons-react'
+import { useEffect, useRef, useState } from 'react'
 import type { Topic } from '@shared/types'
 import { useAppStore } from '../store'
 
@@ -40,6 +40,8 @@ export function TopicQueue() {
   const selectedTopicId = useAppStore((state) => state.selectedTopicId)
   const selectTopic = useAppStore((state) => state.selectTopic)
   const refilling = useAppStore((state) => state.refilling)
+  const refillTopics = useAppStore((state) => state.refillTopics)
+  const cancelRefill = useAppStore((state) => state.cancelRefill)
   const deleteTopic = useAppStore((state) => state.deleteTopic)
   const [page, setPage] = useState(0)
   const [direction, setDirection] = useState(1)
@@ -53,6 +55,14 @@ export function TopicQueue() {
   const batches = groupBatches(topics)
   const safePage = Math.min(page, Math.max(batches.length - 1, 0))
   const visible = batches[safePage] ?? []
+  const lastBatchId = batches.length ? (batches[batches.length - 1][0]?.batchId ?? null) : null
+  const seenBatch = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (!lastBatchId) return
+    if (seenBatch.current && seenBatch.current !== lastBatchId) setPage(batches.length - 1)
+    seenBatch.current = lastBatchId
+  }, [lastBatchId, batches.length])
 
   return (
     <Stack gap={0} h="100%">
@@ -64,37 +74,53 @@ export function TopicQueue() {
           </Text>
         </Group>
       </Collapse>
-      {batches.length > 0 && (
-        <Group justify="center" gap="xs" p={6} style={{ borderBottom: '1px solid #e6e6ea' }}>
-          <ActionIcon
-            variant="default"
-            size="sm"
-            aria-label="上一批"
-            disabled={safePage === 0}
-            onClick={() => {
-              setDirection(-1)
-              setPage(safePage - 1)
-            }}
-          >
-            <IconChevronLeft size={14} />
-          </ActionIcon>
-          <Text size="xs" c="dimmed">
-            {safePage + 1} / {batches.length}
-          </Text>
-          <ActionIcon
-            variant="default"
-            size="sm"
-            aria-label="下一批"
-            disabled={safePage >= batches.length - 1}
-            onClick={() => {
-              setDirection(1)
-              setPage(safePage + 1)
-            }}
-          >
-            <IconChevronRight size={14} />
-          </ActionIcon>
+      <Box pos="relative" style={{ borderBottom: '1px solid #e6e6ea' }}>
+        <Group justify="center" gap="xs" p={6} style={{ minHeight: 34 }}>
+          {batches.length > 0 && (
+            <>
+              <ActionIcon
+                variant="default"
+                size="sm"
+                aria-label="上一批"
+                disabled={safePage === 0}
+                onClick={() => {
+                  setDirection(-1)
+                  setPage(safePage - 1)
+                }}
+              >
+                <IconChevronLeft size={14} />
+              </ActionIcon>
+              <Text size="xs" c="dimmed">
+                {safePage + 1} / {batches.length}
+              </Text>
+              <ActionIcon
+                variant="default"
+                size="sm"
+                aria-label="下一批"
+                disabled={safePage >= batches.length - 1}
+                onClick={() => {
+                  setDirection(1)
+                  setPage(safePage + 1)
+                }}
+              >
+                <IconChevronRight size={14} />
+              </ActionIcon>
+            </>
+          )}
         </Group>
-      )}
+        <ActionIcon
+          variant="default"
+          size="sm"
+          aria-label={refilling ? '取消生成' : '生成下一批'}
+          pos="absolute"
+          right={6}
+          top="50%"
+          style={{ transform: 'translateY(-50%)' }}
+          onClick={() => void (refilling ? cancelRefill() : refillTopics())}
+        >
+          {refilling ? <IconX size={14} /> : <IconPlus size={14} />}
+        </ActionIcon>
+      </Box>
 
       <ScrollArea style={{ flex: 1 }}>
         <Box p={6} key={safePage} className={direction === 1 ? 'slide-right' : 'slide-left'}>

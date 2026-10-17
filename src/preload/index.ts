@@ -24,6 +24,7 @@ const api: Api = {
   updateTopicOpening: (accountId, topicId, openingEn, openingZh) =>
     ipcRenderer.invoke(IPC.topicsUpdateOpening, accountId, topicId, openingEn, openingZh),
   refillTopics: (accountId) => ipcRenderer.invoke(IPC.topicsRefill, accountId),
+  cancelRefill: (accountId) => ipcRenderer.invoke(IPC.topicsRefillCancel, accountId),
   onRefillState: (handler) => {
     const listener = (_event: unknown, state: RefillState): void => handler(state)
     ipcRenderer.on(IPC.refillState, listener)

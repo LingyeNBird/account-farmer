@@ -52,6 +52,7 @@ export const api = {
   ): Promise<Topic[]> =>
     unwrap(window.api.updateTopicOpening(accountId, topicId, openingEn, openingZh)),
   refillTopics: (accountId: string): Promise<void> => unwrap(window.api.refillTopics(accountId)),
+  cancelRefill: (accountId: string): Promise<void> => unwrap(window.api.cancelRefill(accountId)),
   onRefillState: (handler: (state: RefillState) => void): (() => void) =>
     window.api.onRefillState(handler),
   onRefillFocus: (handler: (payload: RefillFocus) => void): (() => void) =>

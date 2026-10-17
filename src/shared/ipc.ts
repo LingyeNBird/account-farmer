@@ -37,6 +37,7 @@ export const IPC = {
   topicsDelete: 'topics:delete',
   topicsUpdateOpening: 'topics:update-opening',
   topicsRefill: 'topics:refill',
+  topicsRefillCancel: 'topics:refill-cancel',
   refillState: 'topics:refill-state',
   refillFocus: 'topics:refill-focus',
   promptsGet: 'prompts:get',
@@ -58,7 +59,7 @@ export type TurnDelta = {
 
 export type RefillState = {
   accountId: string
-  state: 'running' | 'done' | 'failed'
+  state: 'running' | 'done' | 'failed' | 'cancelled'
 }
 
 export type RefillFocus = {
@@ -99,6 +100,7 @@ export type Api = {
     openingZh: string
   ) => Promise<IpcResult<Topic[]>>
   refillTopics: (accountId: string) => Promise<IpcResult<void>>
+  cancelRefill: (accountId: string) => Promise<IpcResult<void>>
   onRefillState: (handler: (state: RefillState) => void) => () => void
   onRefillFocus: (handler: (payload: RefillFocus) => void) => () => void
   getPrompts: () => Promise<IpcResult<PromptMap>>

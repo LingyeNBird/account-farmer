@@ -1,6 +1,6 @@
 import { IPC } from '@shared/ipc'
 import { buildModel } from '../services/llm'
-import { maybeStartRefill, startRefill } from '../services/refill'
+import { cancelRefill, maybeStartRefill, startRefill } from '../services/refill'
 import { generateTopics } from '../services/topicBatch'
 import { getApiKey } from '../store/secrets'
 import { loadSettings } from '../store/settings'
@@ -85,6 +85,10 @@ export function registerTopicHandlers(): void {
     (accountId: string, topicId: string, openingEn: string, openingZh: string) =>
       updateTopicOpening(accountId, topicId, openingEn, openingZh)
   )
+
+  handle(IPC.topicsRefillCancel, async (accountId: string) => {
+    cancelRefill(accountId)
+  })
 
   handle(IPC.topicsRefill, async (accountId: string) => {
     startRefill(accountId)

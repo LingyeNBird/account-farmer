@@ -30,6 +30,8 @@ type AppState = {
   selectTopic: (id: string) => Promise<void>
   setTurnStreaming: (text: string | null) => void
   setRefilling: (value: boolean) => void
+  refillTopics: () => Promise<void>
+  cancelRefill: () => Promise<void>
   generateTurn: (aiReply: string) => Promise<void>
   endTopic: () => Promise<void>
   activateTopic: (topicId: string) => Promise<void>
@@ -140,6 +142,27 @@ export const useAppStore = create<AppState>((set, get) => ({
   setTurnStreaming: (text) => set({ turnStreaming: text }),
 
   setRefilling: (value) => set({ refilling: value }),
+
+  refillTopics: async () => {
+    const accountId = get().currentAccountId
+    if (!accountId) return
+    await guard(
+      async () => {
+        set({ refilling: true })
+        await api.refillTopics(accountId)
+      },
+      (message) => set({ error: message })
+    )
+  },
+
+  cancelRefill: async () => {
+    const accountId = get().currentAccountId
+    if (!accountId) return
+    await guard(
+      () => api.cancelRefill(accountId),
+      (message) => set({ error: message })
+    )
+  },
 
   generateTurn: async (aiReply) => {
     const accountId = get().currentAccountId
