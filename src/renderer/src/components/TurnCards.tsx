@@ -222,11 +222,26 @@ export function ResultCard({
             <Button size="compact-sm" variant="default" onClick={onAbort}>
               取消
             </Button>
-          ) : dirty && onRevert ? (
-            <Button size="compact-sm" variant="default" className="fade-in" onClick={onRevert}>
-              复原
-            </Button>
-          ) : undefined
+          ) : (
+            <Group gap={6} wrap="nowrap">
+              {dirty && onRevert && (
+                <Button size="compact-sm" variant="default" className="fade-in" onClick={onRevert}>
+                  复原
+                </Button>
+              )}
+              {turn && !turn.ended && (
+                <>
+                  <Badge variant="light" color="gray" radius="sm">
+                    {words(en)} 词
+                  </Badge>
+                  <Badge variant="light" color="gray" radius="sm">
+                    {sentences(en)} 句
+                  </Badge>
+                  <CopyButton text={en} label="复制正文" />
+                </>
+              )}
+            </Group>
+          )
         }
       />
 
@@ -269,7 +284,6 @@ export function ResultCard({
                 p={0}
                 className="editable-field"
               />
-              <CopyButton text={en} label="复制正文" mt="xs" />
             </Grid.Col>
             <Grid.Col span={6}>
               <ColumnHead left="中文对照" />
