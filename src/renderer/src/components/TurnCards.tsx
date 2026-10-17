@@ -14,16 +14,18 @@ export function CardHeader({
   right,
   badge
 }: {
-  step: number
+  step?: number
   title: string
   right?: ReactNode
   badge?: ReactNode
 }) {
   return (
     <Group gap="sm" px="md" py="sm" style={{ borderBottom: '1px solid #efeff2' }}>
-      <Badge radius="xl" variant="filled" color="dark" miw={26} h={26} px={0}>
-        {step}
-      </Badge>
+      {step !== undefined && (
+        <Badge radius="xl" variant="filled" color="dark" miw={26} h={26} px={0}>
+          {step}
+        </Badge>
+      )}
       <Text size="sm" fw={600}>
         {title}
       </Text>
@@ -75,6 +77,26 @@ export function OutgoingCard({ en, zh }: { en: string; zh: string }) {
           {sentences(en)} 句
         </Badge>
       </Group>
+    </Paper>
+  )
+}
+
+export function ReplyCard({ text }: { text: string }) {
+  return (
+    <Paper withBorder radius="md">
+      <CardHeader
+        title="AI 回复"
+        right={
+          <Text size="xs" c="dimmed">
+            {text.length} 字符
+          </Text>
+        }
+      />
+      <Box px="md" py="sm">
+        <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+          {text}
+        </Text>
+      </Box>
     </Paper>
   )
 }

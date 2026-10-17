@@ -2,7 +2,7 @@ import { ActionIcon, Alert, Badge, Box, Group, Stack, Text, Title } from '@manti
 import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
 import { useAppStore } from '../store'
-import { OutgoingCard, PasteCard, ResultCard } from './TurnCards'
+import { OutgoingCard, PasteCard, ReplyCard, ResultCard } from './TurnCards'
 
 export function TopicWorkspace() {
   const topics = useAppStore((state) => state.topics)
@@ -131,12 +131,15 @@ export function TopicWorkspace() {
         ) : (
           <>
             {turn ? (
-              <ResultCard
-                turn={turn}
-                streamingText={null}
-                editedEn={editedEn}
-                onEditEn={setEditedEn}
-              />
+              <>
+                <ResultCard
+                  turn={turn}
+                  streamingText={null}
+                  editedEn={editedEn}
+                  onEditEn={setEditedEn}
+                />
+                <ReplyCard text={turn.aiReply} />
+              </>
             ) : (
               <OutgoingCard en={outgoingEn} zh={outgoingZh} />
             )}
