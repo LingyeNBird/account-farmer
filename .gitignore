@@ -1,0 +1,12 @@
+node_modules/
+out/
+dist/
+release/
+*.log
+*.local
+.DS_Store
+
+# 本地文档与布局稿
+DEVELOPMENT.md
+TODO.md
+design/
