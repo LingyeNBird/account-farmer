@@ -1,0 +1,94 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 版本号（三段式，例如 0.1.0，不带 v）
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: 校验版本号
+        shell: bash
+        run: |
+          if [[ ! "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::版本号必须是三段式 x.y.z，且不带前缀 v"
+            exit 1
+          fi
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.13.1
+
+      - name: 打标签
+        shell: bash
+        env:
+          TAG: v${{ inputs.version }}
+        run: |
+          git fetch --tags --force
+          if git rev-parse -q --verify "refs/tags/${TAG}" > /dev/null; then
+            echo "标签 ${TAG} 已存在，跳过打标签"
+          else
+            git tag "${TAG}"
+            git push origin "${TAG}"
+          fi
+
+      - name: 生成变更说明
+        shell: bash
+        env:
+          TAG: v${{ inputs.version }}
+        run: |
+          PREV="$(git describe --tags --abbrev=0 --exclude="${TAG}" 2>/dev/null || true)"
+          if [ -z "${PREV}" ]; then
+            PREV="$(git rev-list --max-parents=0 HEAD | tail -n 1)"
+          fi
+
+          COMPARE_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/compare/${PREV}...${TAG}"
+
+          {
+            echo "## 更新内容"
+            echo ""
+            git log --no-merges --pretty=format:'- %s' "${PREV}..HEAD"
+            echo ""
+            echo ""
+            echo "## 变更对比"
+            echo ""
+            echo "[${PREV:0:7}...${TAG}](${COMPARE_URL})"
+          } > release-body.md
+
+          echo "基线提交：${PREV}"
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 编译
+        run: pnpm build
+
+      - name: 打包
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: pnpm exec electron-builder --win portable --publish never
+
+      - name: 创建草稿 Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ inputs.version }}
+          name: v${{ inputs.version }}
+          draft: true
+          body_path: release-body.md
+          files: dist/*.exe

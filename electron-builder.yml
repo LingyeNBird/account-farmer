@@ -11,6 +11,6 @@ win:
     - target: portable
       arch:
         - x64
-  artifactName: ai-account-nurturing-${version}.exe
+  artifactName: account-farmer-${version}.exe
 portable:
-  artifactName: ai-account-nurturing-${version}.exe
+  artifactName: account-farmer-${version}.exe
