@@ -10,10 +10,12 @@ type AppState = {
   accounts: AccountSummary[]
   currentAccountId: string | null
   settings: Settings | null
+  hasKey: boolean
   error: string | null
   clearError: () => void
   refreshAccounts: () => Promise<void>
   refreshSettings: () => Promise<void>
+  saveSettings: (settings: Settings, apiKey: string) => Promise<void>
   createAccount: (name: string) => Promise<void>
   renameAccount: (id: string, name: string) => Promise<void>
   deleteAccount: (id: string) => Promise<void>
@@ -34,6 +36,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   accounts: [],
   currentAccountId: null,
   settings: null,
+  hasKey: false,
   error: null,
   clearError: () => set({ error: null }),
 
@@ -49,7 +52,21 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   refreshSettings: async () => {
     await guard(
-      async () => set({ settings: await api.getSettings() }),
+      async () => {
+        const [settings, hasKey] = await Promise.all([api.getSettings(), api.hasApiKey()])
+        set({ settings, hasKey })
+      },
+      (message) => set({ error: message })
+    )
+  },
+
+  saveSettings: async (settings, apiKey) => {
+    await guard(
+      async () => {
+        if (apiKey) await api.setApiKey(apiKey)
+        const saved = await api.saveSettings(settings)
+        set({ settings: saved, hasKey: (await api.hasApiKey()) || false })
+      },
       (message) => set({ error: message })
     )
   },

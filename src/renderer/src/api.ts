@@ -1,5 +1,12 @@
 import type { IpcResult } from '@shared/ipc'
-import type { AccountsState, AccountSummary, Settings } from '@shared/types'
+import type {
+  AccountsState,
+  AccountSummary,
+  ModelInfo,
+  ProviderInfo,
+  ProviderSettings,
+  Settings
+} from '@shared/types'
 
 async function unwrap<T>(result: Promise<IpcResult<T>>): Promise<T> {
   const value = await result
@@ -14,5 +21,13 @@ export const api = {
     unwrap(window.api.renameAccount(id, name)),
   deleteAccount: (id: string): Promise<void> => unwrap(window.api.deleteAccount(id)),
   selectAccount: (id: string): Promise<void> => unwrap(window.api.selectAccount(id)),
-  getSettings: (): Promise<Settings> => unwrap(window.api.getSettings())
+  getSettings: (): Promise<Settings> => unwrap(window.api.getSettings()),
+  saveSettings: (settings: Settings): Promise<Settings> => unwrap(window.api.saveSettings(settings)),
+  hasApiKey: (): Promise<boolean> => unwrap(window.api.hasApiKey()),
+  setApiKey: (key: string): Promise<void> => unwrap(window.api.setApiKey(key)),
+  clearApiKey: (): Promise<void> => unwrap(window.api.clearApiKey()),
+  testConnection: (provider: ProviderSettings, apiKey: string): Promise<string> =>
+    unwrap(window.api.testConnection(provider, apiKey)),
+  listProviders: (): Promise<ProviderInfo[]> => unwrap(window.api.listProviders()),
+  listModels: (providerId: string): Promise<ModelInfo[]> => unwrap(window.api.listModels(providerId))
 }

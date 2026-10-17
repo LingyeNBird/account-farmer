@@ -31,6 +31,20 @@ export type ProviderSettings = {
   }
 }
 
+export type ProviderInfo = {
+  id: string
+  name: string
+}
+
+export type ModelInfo = {
+  id: string
+  name: string
+  baseUrl: string
+  reasoning: boolean
+  contextWindow: number
+  maxTokens: number
+}
+
 export type Settings = {
   provider: ProviderSettings
   feedback: { fallbackAfter: number }

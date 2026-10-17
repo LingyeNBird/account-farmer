@@ -6,6 +6,7 @@ const root = (): string => app.getPath('userData')
 
 export const accountsFile = (): string => join(root(), 'accounts.json')
 export const settingsFile = (): string => join(root(), 'settings.json')
+export const secretsFile = (): string => join(root(), 'secrets.bin')
 export const accountDir = (accountId: string): string => join(root(), 'accounts', accountId)
 export const topicsFile = (accountId: string): string => join(accountDir(accountId), 'topics.json')
 export const sessionsDir = (accountId: string): string => join(accountDir(accountId), 'sessions')

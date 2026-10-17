@@ -1,18 +1,29 @@
 import { AppShell, Button, Group, Text } from '@mantine/core'
 import { IconFileText, IconSettings, IconUser } from '@tabler/icons-react'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
+import { isConfigured } from './readiness'
 import { useAppStore } from './store'
 import { Accounts } from './screens/Accounts'
 import { Prompts } from './screens/Prompts'
 import { Settings } from './screens/Settings'
 import { Workbench } from './screens/Workbench'
 
+const EFFORT_LABELS: Record<string, string> = {
+  off: '关闭思考',
+  minimal: '最低思考',
+  low: '低思考',
+  medium: '中思考',
+  high: '高思考',
+  xhigh: '最高思考'
+}
+
 export function App() {
   const view = useAppStore((state) => state.view)
   const setView = useAppStore((state) => state.setView)
   const accounts = useAppStore((state) => state.accounts)
   const currentAccountId = useAppStore((state) => state.currentAccountId)
-  const modelId = useAppStore((state) => state.settings?.provider.modelId)
+  const settings = useAppStore((state) => state.settings)
+  const hasKey = useAppStore((state) => state.hasKey)
   const refreshAccounts = useAppStore((state) => state.refreshAccounts)
   const refreshSettings = useAppStore((state) => state.refreshSettings)
 
@@ -21,7 +32,16 @@ export function App() {
     void refreshSettings()
   }, [refreshAccounts, refreshSettings])
 
+  const routed = useRef(false)
+  useEffect(() => {
+    if (routed.current || !settings) return
+    routed.current = true
+    if (!isConfigured(settings, hasKey)) setView('settings')
+  }, [settings, hasKey, setView])
+
   const currentAccountName = accounts.find((account) => account.id === currentAccountId)?.name
+  const provider = settings?.provider
+  const effort = provider?.reasoningEffort ?? null
 
   return (
     <AppShell
@@ -44,9 +64,16 @@ export function App() {
             >
               {currentAccountName ?? '无账号'}
             </Button>
-            <Text size="xs" c="dimmed" px="xs">
-              {modelId || '未配置模型'}
-            </Text>
+            <Group gap={6} px="xs" wrap="nowrap">
+              <Text size="xs" c={provider?.modelId ? undefined : 'dimmed'}>
+                {provider?.modelId || '未配置模型'}
+              </Text>
+              {effort && (
+                <Text size="xs" c="dimmed">
+                  {EFFORT_LABELS[effort]}
+                </Text>
+              )}
+            </Group>
             <Button
               variant="subtle"
               color="gray"
