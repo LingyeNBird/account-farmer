@@ -18,6 +18,7 @@ export function TopicWorkspace() {
   const abortTurn = useAppStore((state) => state.abortTurn)
   const endTopic = useAppStore((state) => state.endTopic)
   const activateTopic = useAppStore((state) => state.activateTopic)
+  const updateTopicOpening = useAppStore((state) => state.updateTopicOpening)
 
   const [paste, setPaste] = useState('')
   const [position, setPosition] = useState<number | null>(null)
@@ -150,7 +151,11 @@ export function TopicWorkspace() {
           </>
         ) : (
           <>
-            <OutgoingCard en={topic.openingEn} zh={topic.openingZh} />
+            <OutgoingCard
+              en={topic.openingEn}
+              zh={topic.openingZh}
+              onSave={(en, zh) => void updateTopicOpening(topic.id, en, zh)}
+            />
             {pasteCard}
           </>
         )}

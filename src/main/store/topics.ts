@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto'
+import { rm } from 'node:fs/promises'
 import type { Topic, TopicDraft } from '@shared/types'
-import { readJson, topicsFile, writeJson } from './paths'
-import { activateTopicIn, archiveTopicIn, type TopicsState } from './topicsOps'
+import { readJson, sessionFile, topicsFile, writeJson } from './paths'
+import { activateTopicIn, archiveTopicIn, promoteNext, type TopicsState } from './topicsOps'
 
 type TopicsFile = TopicsState
 
@@ -60,5 +61,42 @@ export async function activateTopic(accountId: string, topicId: string): Promise
   if (activateTopicIn(file, topicId, Date.now())) {
     await writeJson(topicsFile(accountId), file)
   }
+  return listTopics(accountId)
+}
+
+/** 彻底删除主题及其会话；进行中的主题被删时，把下一个未开始的主题置为进行中。 */
+export async function deleteTopic(accountId: string, topicId: string): Promise<Topic[]> {
+  const file = await load(accountId)
+
+  const queueIndex = file.queue.findIndex((item) => item.id === topicId)
+  const historyIndex = file.history.findIndex((item) => item.id === topicId)
+  if (queueIndex === -1 && historyIndex === -1) throw new Error('主题不存在')
+
+  const removed =
+    queueIndex !== -1
+      ? file.queue.splice(queueIndex, 1)[0]
+      : file.history.splice(historyIndex, 1)[0]
+
+  if (removed.status === 'active') promoteNext(file)
+
+  await writeJson(topicsFile(accountId), file)
+  await rm(sessionFile(accountId, topicId), { force: true })
+  return listTopics(accountId)
+}
+
+/** 更新主题的开场白。 */
+export async function updateTopicOpening(
+  accountId: string,
+  topicId: string,
+  openingEn: string,
+  openingZh: string
+): Promise<Topic[]> {
+  const file = await load(accountId)
+  const topic = [...file.queue, ...file.history].find((item) => item.id === topicId)
+  if (!topic) throw new Error('主题不存在')
+
+  topic.openingEn = openingEn
+  topic.openingZh = openingZh
+  await writeJson(topicsFile(accountId), file)
   return listTopics(accountId)
 }

@@ -4,7 +4,14 @@ import { maybeStartRefill, startRefill } from '../services/refill'
 import { generateTopics } from '../services/topicBatch'
 import { getApiKey } from '../store/secrets'
 import { loadSettings } from '../store/settings'
-import { appendTopics, archiveTopic, activateTopic, listTopics } from '../store/topics'
+import {
+  activateTopic,
+  appendTopics,
+  archiveTopic,
+  deleteTopic,
+  listTopics,
+  updateTopicOpening
+} from '../store/topics'
 import { broadcast } from './broadcast'
 import { handle } from './handle'
 
@@ -66,6 +73,18 @@ export function registerTopicHandlers(): void {
     maybeStartRefill(accountId)
     return topics
   })
+
+  handle(IPC.topicsDelete, async (accountId: string, topicId: string) => {
+    const topics = await deleteTopic(accountId, topicId)
+    maybeStartRefill(accountId)
+    return topics
+  })
+
+  handle(
+    IPC.topicsUpdateOpening,
+    (accountId: string, topicId: string, openingEn: string, openingZh: string) =>
+      updateTopicOpening(accountId, topicId, openingEn, openingZh)
+  )
 
   handle(IPC.topicsRefill, async (accountId: string) => {
     startRefill(accountId)

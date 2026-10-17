@@ -34,6 +34,8 @@ export const IPC = {
   topicsCancel: 'topics:cancel',
   topicsArchive: 'topics:archive',
   topicsActivate: 'topics:activate',
+  topicsDelete: 'topics:delete',
+  topicsUpdateOpening: 'topics:update-opening',
   topicsRefill: 'topics:refill',
   refillState: 'topics:refill-state',
   refillFocus: 'topics:refill-focus',
@@ -89,6 +91,13 @@ export type Api = {
   cancelTopicGeneration: (accountId: string) => Promise<IpcResult<void>>
   archiveTopic: (accountId: string, topicId: string) => Promise<IpcResult<Topic[]>>
   activateTopic: (accountId: string, topicId: string) => Promise<IpcResult<Topic[]>>
+  deleteTopic: (accountId: string, topicId: string) => Promise<IpcResult<Topic[]>>
+  updateTopicOpening: (
+    accountId: string,
+    topicId: string,
+    openingEn: string,
+    openingZh: string
+  ) => Promise<IpcResult<Topic[]>>
   refillTopics: (accountId: string) => Promise<IpcResult<void>>
   onRefillState: (handler: (state: RefillState) => void) => () => void
   onRefillFocus: (handler: (payload: RefillFocus) => void) => () => void

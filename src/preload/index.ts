@@ -20,6 +20,9 @@ const api: Api = {
   cancelTopicGeneration: (accountId) => ipcRenderer.invoke(IPC.topicsCancel, accountId),
   archiveTopic: (accountId, topicId) => ipcRenderer.invoke(IPC.topicsArchive, accountId, topicId),
   activateTopic: (accountId, topicId) => ipcRenderer.invoke(IPC.topicsActivate, accountId, topicId),
+  deleteTopic: (accountId, topicId) => ipcRenderer.invoke(IPC.topicsDelete, accountId, topicId),
+  updateTopicOpening: (accountId, topicId, openingEn, openingZh) =>
+    ipcRenderer.invoke(IPC.topicsUpdateOpening, accountId, topicId, openingEn, openingZh),
   refillTopics: (accountId) => ipcRenderer.invoke(IPC.topicsRefill, accountId),
   onRefillState: (handler) => {
     const listener = (_event: unknown, state: RefillState): void => handler(state)

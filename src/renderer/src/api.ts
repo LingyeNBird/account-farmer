@@ -42,6 +42,15 @@ export const api = {
     unwrap(window.api.archiveTopic(accountId, topicId)),
   activateTopic: (accountId: string, topicId: string): Promise<Topic[]> =>
     unwrap(window.api.activateTopic(accountId, topicId)),
+  deleteTopic: (accountId: string, topicId: string): Promise<Topic[]> =>
+    unwrap(window.api.deleteTopic(accountId, topicId)),
+  updateTopicOpening: (
+    accountId: string,
+    topicId: string,
+    openingEn: string,
+    openingZh: string
+  ): Promise<Topic[]> =>
+    unwrap(window.api.updateTopicOpening(accountId, topicId, openingEn, openingZh)),
   refillTopics: (accountId: string): Promise<void> => unwrap(window.api.refillTopics(accountId)),
   onRefillState: (handler: (state: RefillState) => void): (() => void) =>
     window.api.onRefillState(handler),

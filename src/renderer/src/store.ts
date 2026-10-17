@@ -33,6 +33,11 @@ type AppState = {
   generateTurn: (aiReply: string) => Promise<void>
   endTopic: () => Promise<void>
   activateTopic: (topicId: string) => Promise<void>
+  pendingTopicDelete: Topic | null
+  requestDeleteTopic: (topic: Topic) => void
+  cancelDeleteTopic: () => void
+  confirmDeleteTopic: () => Promise<void>
+  updateTopicOpening: (topicId: string, openingEn: string, openingZh: string) => Promise<void>
   abortTurn: () => Promise<void>
   generateTopics: () => Promise<void>
   cancelTopicGeneration: () => Promise<void>
@@ -65,6 +70,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   turnLoading: false,
   refilling: false,
   generating: null,
+  pendingTopicDelete: null,
   error: null,
   clearError: () => set({ error: null }),
   setGenerating: (generating) => set({ generating }),
@@ -183,6 +189,38 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (!accountId) return
     await guard(
       async () => set({ topics: await api.activateTopic(accountId, topicId) }),
+      (message) => set({ error: message })
+    )
+  },
+
+  requestDeleteTopic: (topic) => set({ pendingTopicDelete: topic }),
+  cancelDeleteTopic: () => set({ pendingTopicDelete: null }),
+
+  confirmDeleteTopic: async () => {
+    const accountId = get().currentAccountId
+    const target = get().pendingTopicDelete
+    if (!accountId || !target) return
+    await guard(
+      async () => {
+        const topics = await api.deleteTopic(accountId, target.id)
+        const wasSelected = get().selectedTopicId === target.id
+        const next = topics.find((topic) => topic.status === 'active') ?? topics[0]
+        set({ topics, pendingTopicDelete: null })
+        if (wasSelected) {
+          set({ selectedTopicId: next?.id ?? null, session: null })
+          if (next) await get().selectTopic(next.id)
+        }
+      },
+      (message) => set({ error: message, pendingTopicDelete: null })
+    )
+  },
+
+  updateTopicOpening: async (topicId, openingEn, openingZh) => {
+    const accountId = get().currentAccountId
+    if (!accountId) return
+    await guard(
+      async () =>
+        set({ topics: await api.updateTopicOpening(accountId, topicId, openingEn, openingZh) }),
       (message) => set({ error: message })
     )
   },

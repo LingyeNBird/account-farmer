@@ -1,5 +1,6 @@
 import { Badge, Box, Button, Grid, Group, Paper, Text, Textarea } from '@mantine/core'
 import type { ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 import { IconThumbDown, IconThumbUp } from '@tabler/icons-react'
 import type { Turn } from '@shared/types'
 import { api } from '../api'
@@ -47,7 +48,28 @@ function ColumnHead({ left, right }: { left: string; right?: ReactNode }) {
   )
 }
 
-export function OutgoingCard({ en, zh }: { en: string; zh: string }) {
+export function OutgoingCard({
+  en,
+  zh,
+  onSave
+}: {
+  en: string
+  zh: string
+  onSave?: (en: string, zh: string) => void
+}) {
+  const [draftEn, setDraftEn] = useState(en)
+  const [draftZh, setDraftZh] = useState(zh)
+
+  useEffect(() => {
+    setDraftEn(en)
+    setDraftZh(zh)
+  }, [en, zh])
+
+  const commit = (): void => {
+    if (draftEn === en && draftZh === zh) return
+    onSave?.(draftEn, draftZh)
+  }
+
   return (
     <Paper withBorder radius="md">
       <CardHeader
@@ -56,27 +78,62 @@ export function OutgoingCard({ en, zh }: { en: string; zh: string }) {
         right={
           <Group gap={6} wrap="nowrap">
             <Badge variant="light" color="gray" radius="sm">
-              {words(en)} 词
+              {words(draftEn)} 词
             </Badge>
             <Badge variant="light" color="gray" radius="sm">
-              {sentences(en)} 句
+              {sentences(draftEn)} 句
             </Badge>
-            <CopyButton text={en} label="复制英文" />
+            <CopyButton text={draftEn} label="复制英文" />
           </Group>
         }
       />
       <Grid gap="lg" p="md">
         <Grid.Col span={6}>
-          <ColumnHead left="英文" />
-          <Text size="sm" fw={500} style={{ whiteSpace: 'pre-wrap' }}>
-            {en}
-          </Text>
+          <ColumnHead
+            left="英文"
+            right={
+              onSave ? (
+                <Badge variant="light" color="gray" radius="sm">
+                  可编辑
+                </Badge>
+              ) : undefined
+            }
+          />
+          {onSave ? (
+            <Textarea
+              value={draftEn}
+              onChange={(event) => setDraftEn(event.currentTarget.value)}
+              onBlur={commit}
+              autosize
+              minRows={3}
+              variant="unstyled"
+              p={0}
+              styles={{ input: { fontSize: 14, lineHeight: 1.62 } }}
+            />
+          ) : (
+            <Text size="sm" fw={500} style={{ whiteSpace: 'pre-wrap' }}>
+              {en}
+            </Text>
+          )}
         </Grid.Col>
         <Grid.Col span={6}>
           <ColumnHead left="中文对照" />
-          <Text size="sm" c="dimmed" fw={500} style={{ whiteSpace: 'pre-wrap' }}>
-            {zh}
-          </Text>
+          {onSave ? (
+            <Textarea
+              value={draftZh}
+              onChange={(event) => setDraftZh(event.currentTarget.value)}
+              onBlur={commit}
+              autosize
+              minRows={3}
+              variant="unstyled"
+              p={0}
+              styles={{ input: { fontSize: 14, lineHeight: 1.62, color: 'var(--mantine-color-dimmed)' } }}
+            />
+          ) : (
+            <Text size="sm" c="dimmed" fw={500} style={{ whiteSpace: 'pre-wrap' }}>
+              {zh}
+            </Text>
+          )}
         </Grid.Col>
       </Grid>
     </Paper>

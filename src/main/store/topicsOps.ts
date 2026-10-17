@@ -17,7 +17,7 @@ function archiveInto(state: TopicsState, topic: Topic, now: number): void {
   state.history.push(topic)
 }
 
-function promoteNext(state: TopicsState): void {
+export function promoteNext(state: TopicsState): void {
   if (state.queue.some((topic) => topic.status === 'active')) return
   const next = state.queue.find((topic) => topic.status === 'pending')
   if (next) next.status = 'active'
