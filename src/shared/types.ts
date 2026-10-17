@@ -99,7 +99,7 @@ export type Feedback = {
 
 export type TurnDebug = {
   systemPrompt: string
-  userMessage: string
+  messages: Array<{ role: string; content: string }>
   rawReply: string
   exampleCount: number
   exampleChars: number
@@ -127,6 +127,8 @@ export type Turn = {
   reply?: string
   ended: boolean
   endReason?: string
+  /** 模型原始输出（含标记块），作为下一轮的历史回放。 */
+  raw?: string
   /** 本次请求的提示词、参数与原始输出，仅用于排查。 */
   debug?: TurnDebug
   createdAt: number

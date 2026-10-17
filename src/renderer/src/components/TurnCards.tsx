@@ -15,7 +15,6 @@ import {
 import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { IconThumbDown, IconThumbUp } from '@tabler/icons-react'
-import { FEWSHOT_MESSAGES } from '@shared/fewshot'
 import type { Turn } from '@shared/types'
 import { api } from '../api'
 import { CopyButton } from './CopyButton'
@@ -364,34 +363,29 @@ export function ResultCard({
               {turn.debug.systemPrompt}
             </Code>
 
-            <Accordion variant="contained" keepMounted={false}>
-              <Accordion.Item value="examples">
-                <Accordion.Control>
-                  示例消息（{FEWSHOT_MESSAGES.length} 条，按原顺序随请求发送）
-                </Accordion.Control>
-                <Accordion.Panel>
-                  <Stack gap="xs">
-                    {FEWSHOT_MESSAGES.map((message, index) => (
-                      <Box key={index}>
-                        <Text size="xs" c="dimmed">
-                          {index + 1} · {message.role}
-                        </Text>
-                        <Code block style={{ whiteSpace: 'pre-wrap' }}>
-                          {message.content}
-                        </Code>
-                      </Box>
-                    ))}
-                  </Stack>
-                </Accordion.Panel>
-              </Accordion.Item>
-            </Accordion>
-
-            <Text size="sm" fw={600}>
-              本轮用户消息
-            </Text>
-            <Code block style={{ whiteSpace: 'pre-wrap' }}>
-              {turn.debug.userMessage}
-            </Code>
+            {turn.debug.messages && (
+              <Accordion variant="contained" keepMounted={false}>
+                <Accordion.Item value="messages">
+                  <Accordion.Control>
+                    请求消息（{turn.debug.messages.length} 条，示例与历史按原顺序）
+                  </Accordion.Control>
+                  <Accordion.Panel>
+                    <Stack gap="xs">
+                      {turn.debug.messages.map((message, index) => (
+                        <Box key={index}>
+                          <Text size="xs" c="dimmed">
+                            {index + 1} · {message.role}
+                          </Text>
+                          <Code block style={{ whiteSpace: 'pre-wrap' }}>
+                            {message.content}
+                          </Code>
+                        </Box>
+                      ))}
+                    </Stack>
+                  </Accordion.Panel>
+                </Accordion.Item>
+              </Accordion>
+            )}
 
             <Text size="sm" fw={600}>
               模型原始输出

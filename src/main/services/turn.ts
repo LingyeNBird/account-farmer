@@ -9,7 +9,6 @@ import { archiveTopic, listTopics } from '../store/topics'
 import { createEmitThrottle } from './emitThrottle'
 import { buildModel } from './llm'
 import { composeSystemPrompt } from './systemPrompt'
-import { buildUserMessage } from './turnContext'
 import { FEWSHOT_MESSAGES } from '@shared/fewshot'
 
 const loadPiAi = () => import('@mariozechner/pi-ai')
@@ -27,7 +26,7 @@ type RunOptions = {
   model: Model<Api>
   apiKey: string
   systemPrompt: string
-  userMessage: string
+  messages: Message[]
   effort: ReasoningEffort
   signal: AbortSignal
   onDelta: (text: string) => void
@@ -47,31 +46,73 @@ function attachReply(session: Session, reply: string, turn: Turn): Session {
 }
 
 /** 示例按消息历史注入：assistant 消息要补齐 pi-ai 需要的元信息。 */
+function assistantMessage(model: Model<Api>, text: string): AssistantMessage {
+  return {
+    role: 'assistant',
+    content: [{ type: 'text', text }],
+    api: model.api,
+    provider: model.provider,
+    model: model.id,
+    usage: {
+      input: 0,
+      output: 0,
+      cacheRead: 0,
+      cacheWrite: 0,
+      totalTokens: 0,
+      cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 }
+    },
+    stopReason: 'stop',
+    timestamp: 0
+  }
+}
+
 function exampleHistory(model: Model<Api>): Message[] {
-  return FEWSHOT_MESSAGES.map((item): Message => {
-    if (item.role === 'assistant') {
-      const message: AssistantMessage = {
-        role: 'assistant',
-        content: [{ type: 'text', text: item.content }],
-        api: model.api,
-        provider: model.provider,
-        model: model.id,
-        usage: {
-          input: 0,
-          output: 0,
-          cacheRead: 0,
-          cacheWrite: 0,
-          totalTokens: 0,
-          cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 }
-        },
-        stopReason: 'stop',
-        timestamp: 0
-      }
-      return message
-    }
-    const message: UserMessage = { role: 'user', content: item.content, timestamp: 0 }
-    return message
-  })
+  return FEWSHOT_MESSAGES.map((item): Message =>
+    item.role === 'assistant'
+      ? assistantMessage(model, item.content)
+      : ({ role: 'user', content: item.content, timestamp: 0 } as UserMessage)
+  )
+}
+
+/** 旧轮次没有 raw，就按标记格式重建一份，保证历史仍是合法输出形态。 */
+function turnOutput(turn: Turn): string {
+  if (turn.raw) return turn.raw
+  const parts = [
+    `<<<EN>>>\n${turn.messageEn}\n<<</EN>>>`,
+    `<<<ZH>>>\n${turn.messageZh}\n<<</ZH>>>`
+  ]
+  if (turn.feedback) {
+    parts.push(
+      `<<<FB_VERDICT>>>\n${turn.feedback.verdict}\n<<</FB_VERDICT>>>`,
+      `<<<FB_EN>>>\n${turn.feedback.en}\n<<</FB_EN>>>`,
+      `<<<FB_ZH>>>\n${turn.feedback.zh}\n<<</FB_ZH>>>`
+    )
+  }
+  return parts.join('\n\n')
+}
+
+const HISTORY_BUDGET = 400_000
+
+/** 把会话还原成真实消息序列：开场回复 → (我方输出 → 对方回复)* → 本轮回复。 */
+function buildConversation(session: Session, reply: string, model: Model<Api>): Message[] {
+  const turns = [...session.turns]
+  let size = turns.reduce((total, turn) => total + turnOutput(turn).length + (turn.reply?.length ?? 0), 0)
+  while (size > HISTORY_BUDGET && turns.length > 2) {
+    const dropped = turns.shift()
+    if (!dropped) break
+    size -= turnOutput(dropped).length + (dropped.reply?.length ?? 0)
+  }
+
+  const messages: Message[] = []
+  if (session.openingReply) {
+    messages.push({ role: 'user', content: session.openingReply, timestamp: 0 })
+  }
+  for (const turn of turns) {
+    if (turn.messageEn) messages.push(assistantMessage(model, turnOutput(turn)))
+    if (turn.reply) messages.push({ role: 'user', content: turn.reply, timestamp: 0 })
+  }
+  messages.push({ role: 'user', content: reply, timestamp: Date.now() })
+  return messages
 }
 
 async function streamOnce(options: RunOptions): Promise<{ raw: string; usage: Usage }> {
@@ -83,10 +124,7 @@ async function streamOnce(options: RunOptions): Promise<{ raw: string; usage: Us
     options.model,
     {
       systemPrompt: options.systemPrompt,
-      messages: [
-        ...exampleHistory(options.model),
-        { role: 'user', content: options.userMessage, timestamp: Date.now() }
-      ]
+      messages: options.messages
     },
     {
       apiKey: options.apiKey,
@@ -146,22 +184,17 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
   }
 
   const prompts = await loadPrompts()
-  const systemPrompt = composeSystemPrompt(prompts)
+  const systemPrompt = `${composeSystemPrompt(prompts)}\n\n# 主题\n标题：${topic.title}\n领域：${topic.domains.join('、')}\n开场英文：${topic.openingEn}\n开场中文：${topic.openingZh}`
 
-  const userMessage = buildUserMessage({
-    topic,
-    openingReply: session.openingReply,
-    turns: session.turns,
-    reply: options.reply,
-    round: session.turns.length + 1
-  })
+  const history = buildConversation(session, options.reply, model)
+  const messages: Message[] = [...exampleHistory(model), ...history]
 
   const run = (extra: string): Promise<{ raw: string; usage: Usage }> =>
     streamOnce({
       model,
       apiKey,
       systemPrompt: extra ? `${systemPrompt}\n\n${extra}` : systemPrompt,
-      userMessage,
+      messages,
       effort: settings.provider.reasoningEffort,
       signal: options.signal,
       onDelta: options.onDelta
@@ -212,7 +245,10 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
 
   const debug = {
     systemPrompt: usedSystemPrompt,
-    userMessage,
+    messages: messages.map((message) => ({
+      role: message.role,
+      content: typeof message.content === 'string' ? message.content : JSON.stringify(message.content)
+    })),
     rawReply: raw,
     exampleCount: FEWSHOT_MESSAGES.length,
     exampleChars: FEWSHOT_MESSAGES.reduce((total, item) => total + item.content.length, 0),
@@ -247,6 +283,7 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
           messageEn: parsed.en,
           messageZh: parsed.zh,
           feedback: parsed.feedback,
+          raw,
           ended: false,
           debug,
           createdAt: Date.now()
