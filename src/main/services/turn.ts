@@ -7,6 +7,7 @@ import { appendTurn, loadSession } from '../store/sessions'
 import { loadSettings } from '../store/settings'
 import { listTopics } from '../store/topics'
 import { buildModel } from './llm'
+import { countRepliesSinceFeedback, fillFeedbackDirective } from './feedback'
 import { buildUserMessage, type ContextTopic } from './turnContext'
 
 const loadPiAi = () => import('@mariozechner/pi-ai')
@@ -86,12 +87,11 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
   )
 
   const prompts = await loadPrompts()
-  let repliesSinceFeedback = 0
-  for (let index = session.turns.length - 1; index >= 0; index -= 1) {
-    if (session.turns[index].feedback) break
-    repliesSinceFeedback += 1
-  }
+  const repliesSinceFeedback = countRepliesSinceFeedback(session.turns)
   const forceFeedback = repliesSinceFeedback >= settings.feedback.fallbackAfter
+  const systemPrompt = forceFeedback
+    ? `${prompts.system}\n\n${fillFeedbackDirective(prompts.feedbackFallback, repliesSinceFeedback)}`
+    : prompts.system
 
   const userMessage = buildUserMessage({
     current: { topic, turns: session.turns },
@@ -106,7 +106,7 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
     streamOnce({
       model,
       apiKey,
-      systemPrompt: extra ? `${prompts.system}\n\n${extra}` : prompts.system,
+      systemPrompt: extra ? `${systemPrompt}\n\n${extra}` : systemPrompt,
       userMessage,
       effort: settings.provider.reasoningEffort,
       signal: options.signal,
