@@ -163,6 +163,12 @@ good 或 bad
     "domains": ["<领域>"],
     "openingEn": "<下一条英文开场>",
     "openingZh": "<对应的中文>"
+  },
+  {
+    "title": "…",
+    "domains": ["…"],
+    "openingEn": "…",
+    "openingZh": "…"
   }
 ]
 <<</TOPICS>>>`,
