@@ -6,30 +6,6 @@ directories:
 files:
   - out/**
   - package.json
-  # 只用 openai-completions 一条路径，其余 provider SDK 是 pi-ai 的动态 import，
-  # 不选就不加载；排除它们可省约 40MB。切到那些 provider 前需先移除对应排除项。
-  - '!node_modules/@google/genai/**'
-  - '!node_modules/@mistralai/**'
-  - '!node_modules/@anthropic-ai/**'
-  - '!node_modules/@aws-sdk/**'
-  - '!node_modules/@opentelemetry/**'
-  # 这些是上面几个 SDK 的传递依赖，单独排除才不会残留
-  - '!node_modules/@aws/**'
-  - '!node_modules/@smithy/**'
-  - '!node_modules/google-*/**'
-  - '!node_modules/gaxios/**'
-  - '!node_modules/gcp-metadata/**'
-  - '!node_modules/protobufjs/**'
-  - '!node_modules/@protobufjs/**'
-  - '!node_modules/json-bigint/**'
-  - '!node_modules/bignumber.js/**'
-  - '!node_modules/long/**'
-  - '!node_modules/node-fetch/**'
-  - '!node_modules/fetch-blob/**'
-  - '!node_modules/formdata-polyfill/**'
-  - '!node_modules/data-uri-to-buffer/**'
-  - '!node_modules/p-retry/**'
-  - '!node_modules/retry/**'
 win:
   icon: resources/icon.ico
   target:
