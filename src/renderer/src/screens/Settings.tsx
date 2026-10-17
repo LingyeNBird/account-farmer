@@ -267,6 +267,18 @@ function SettingsForm({ initial }: { initial: SettingsValue }) {
                   }))
                 }
               />
+              <NumberInput
+                label="主题最大轮数"
+                value={draft.limits.maxRounds}
+                min={1}
+                max={50}
+                onChange={(value) =>
+                  setDraft((current) => ({
+                    ...current,
+                    limits: { maxRounds: Number(value) || 11 }
+                  }))
+                }
+              />
 
               <Divider my="xs" />
               <Text size="sm" fw={600}>

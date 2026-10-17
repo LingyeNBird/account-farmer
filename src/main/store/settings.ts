@@ -10,6 +10,7 @@ export async function loadSettings(): Promise<Settings> {
       compat: { ...DEFAULT_SETTINGS.provider.compat, ...stored.provider?.compat }
     },
     feedback: { ...DEFAULT_SETTINGS.feedback, ...stored.feedback },
+    limits: { ...DEFAULT_SETTINGS.limits, ...stored.limits },
     notify: { ...DEFAULT_SETTINGS.notify, ...stored.notify }
   }
 }

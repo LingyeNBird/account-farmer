@@ -48,6 +48,7 @@ export type ModelInfo = {
 export type Settings = {
   provider: ProviderSettings
   feedback: { fallbackAfter: number }
+  limits: { maxRounds: number }
   notify: { onUnfocused: boolean }
 }
 
@@ -66,6 +67,7 @@ export const DEFAULT_SETTINGS: Settings = {
     }
   },
   feedback: { fallbackAfter: 4 },
+  limits: { maxRounds: 11 },
   notify: { onUnfocused: true }
 }
 

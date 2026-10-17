@@ -76,6 +76,22 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
 
   const session = await loadSession(options.accountId, options.topicId)
 
+  const maxRounds = settings.limits.maxRounds
+  if (session.turns.length >= maxRounds) {
+    const endedTurn: Turn = {
+      index: session.turns.length + 1,
+      aiReply: options.aiReply,
+      messageEn: '',
+      messageZh: '',
+      ended: true,
+      endReason: `达到上限 ${maxRounds} 轮`,
+      createdAt: Date.now()
+    }
+    await appendTurn(options.accountId, options.topicId, endedTurn)
+    await archiveTopic(options.accountId, options.topicId)
+    return endedTurn
+  }
+
   const prompts = await loadPrompts()
   const repliesSinceFeedback = countRepliesSinceFeedback(session.turns)
   const forceFeedback = repliesSinceFeedback >= settings.feedback.fallbackAfter
