@@ -146,7 +146,20 @@ good 或 bad
 - 同一批内领域必须互斥，不允许出现两次相同领域。
 - 不涉及金融、投资、加密货币，不涉及 AI 模型训练与算法本身。
 - openingEn 必须提出一个具体的、可争论的技术判断，并给出一个反直觉的观察，最后提出一个需要对方回答的问题。
-- 禁止模板句式，例如 "X — that's Y"、"not just X, but Y"。`,
+- 禁止模板句式，例如 "X — that's Y"、"not just X, but Y"。
+
+输出示例（只示范格式与长度，主题内容不要照搬）：
+
+<<<TOPICS>>>
+[
+  {
+    "title": "LSM 树写放大与 SSD 寿命",
+    "domains": ["存储引擎", "闪存系统"],
+    "openingEn": "I keep hitting the same wall when sizing an LSM tree: the write amplification needed to keep SSD endurance in budget is usually an order of magnitude above what the workload actually writes, and it grows with level count and capacity ratio. Tiered compaction trades that back for read amplification and temporary space, which is why RocksDB exposes the knobs per level. What I have not settled is whether drives with explicit placement hints change that calculus or just move the same cost into the FTL. If the drive can tell us which blocks are short-lived, does leveled compaction stop being the default?",
+    "openingZh": "每次给 LSM 树定层级，我都会撞到同一面墙：要把 SSD 寿命控制在预算内的写放大，往往比工作负载真正写入的字节高一个数量级，而且随层数和容量比增长。分层压实能把写放大换回来，代价是读放大和临时空间，这也是 RocksDB 把参数放到每层的原因。我还没想清楚的是：带显式放置提示的盘会改变这笔账，还是只是把同样的成本挪进 FTL。如果盘能知道哪些块是短命的，分层压实还会是默认选择吗？"
+  }
+]
+<<</TOPICS>>>`,
 
   feedbackFallback: `本轮已连续 {{replies_since_feedback}} 轮没有给出反馈，本轮必须输出反馈三块。
 反馈只陈述一件事：当前讨论是在正轨上，还是已经偏离。不评价用户，不写建议。`,
