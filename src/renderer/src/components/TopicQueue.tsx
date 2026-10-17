@@ -39,6 +39,7 @@ export function TopicQueue() {
   const topics = useAppStore((state) => state.topics)
   const selectedTopicId = useAppStore((state) => state.selectedTopicId)
   const selectTopic = useAppStore((state) => state.selectTopic)
+  const setView = useAppStore((state) => state.setView)
   const refilling = useAppStore((state) => state.refilling)
   const refillTopics = useAppStore((state) => state.refillTopics)
   const cancelRefill = useAppStore((state) => state.cancelRefill)
@@ -136,7 +137,10 @@ export function TopicQueue() {
               >
                 <NavLink
                   active={topic.id === selectedTopicId}
-                  onClick={() => void selectTopic(topic.id)}
+                  onClick={() => {
+                    setView('workbench')
+                    void selectTopic(topic.id)
+                  }}
                   color={topic.status === 'archived' ? 'teal' : 'indigo'}
                   label={
                     <Text fz={15} fw={600} lineClamp={1} lh={1.35}>
