@@ -73,17 +73,17 @@ export function TopicQueue() {
                 description={
                   <Group gap={4} mt={2} wrap="nowrap">
                     {topic.domains.slice(0, 1).map((domain) => (
-                      <Badge key={domain} size="xs" variant="light" color="gray" radius="sm" tt="none">
+                      <Badge key={domain} variant="light" color="gray" radius="sm">
                         {domain}
                       </Badge>
                     ))}
                     {topic.status === 'active' && (
-                      <Badge size="xs" variant="light" color="indigo" radius="sm">
+                      <Badge variant="light" color="indigo" radius="sm">
                         进行中
                       </Badge>
                     )}
                     {topic.status === 'archived' && (
-                      <Badge size="xs" variant="light" color="teal" radius="sm">
+                      <Badge variant="light" color="teal" radius="sm">
                         已归档
                       </Badge>
                     )}

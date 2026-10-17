@@ -26,7 +26,7 @@ export function Workbench() {
       <Stack gap="md">
         <Box>
           <Group gap={6}>
-            <Badge size="sm" variant="light" color="gray" radius="sm">
+            <Badge variant="light" color="gray" radius="sm">
               初始化
             </Badge>
           </Group>
@@ -73,7 +73,7 @@ export function Workbench() {
             <Stack gap={6} p="md">
               {generating.titles.map((title, index) => (
                 <Group key={title} gap="sm" wrap="nowrap">
-                  <Badge size="md" radius="sm" variant="light" color="teal">
+                  <Badge radius="sm" variant="light" color="teal">
                     {String(index + 1).padStart(2, '0')}
                   </Badge>
                   <Text size="sm">{title}</Text>
