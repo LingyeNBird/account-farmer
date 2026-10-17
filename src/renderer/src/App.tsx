@@ -123,10 +123,11 @@ export function App() {
         <Group h="100%" px="md" justify="space-between" wrap="nowrap">
           <Button
             variant="subtle"
-            color="dark"
+            color="gray"
             size="compact-sm"
             fw={600}
             px={6}
+            styles={{ label: { color: 'var(--mantine-color-dark-9)' } }}
             onClick={() => setView('workbench')}
           >
             AI 养号工作台
