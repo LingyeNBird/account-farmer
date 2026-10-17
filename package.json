@@ -8,7 +8,8 @@
     "dev": "electron-vite dev",
     "build": "pnpm typecheck && electron-vite build",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.json",
-    "start": "electron-vite preview"
+    "start": "electron-vite preview",
+    "test": "vitest run"
   },
   "dependencies": {
     "@mantine/core": "9.7.2",
@@ -28,7 +29,8 @@
     "electron-builder": "26.15.3",
     "electron-vite": "6.0.0",
     "typescript": "7.0.2",
-    "vite": "8.3.4"
+    "vite": "8.3.4",
+    "vitest": "5.0.5"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

@@ -4,8 +4,10 @@ import type {
   ModelInfo,
   ProviderInfo,
   ProviderSettings,
+  Session,
   Settings,
-  Topic
+  Topic,
+  Turn
 } from './types'
 
 export type IpcResult<T> = { ok: true; data: T } | { ok: false; code: string; message: string }
@@ -27,8 +29,19 @@ export const IPC = {
   topicsList: 'topics:list',
   topicsGenerate: 'topics:generate',
   topicsCancel: 'topics:cancel',
-  topicsProgress: 'topics:progress'
+  topicsProgress: 'topics:progress',
+  sessionGet: 'session:get',
+  sessionGenerate: 'session:generate',
+  sessionAbort: 'session:abort',
+  sessionDelta: 'session:delta',
+  clipboardWrite: 'clipboard:write'
 } as const
+
+export type TurnDelta = {
+  accountId: string
+  topicId: string
+  text: string
+}
 
 export type TopicProgress = {
   accountId: string
@@ -55,4 +68,9 @@ export type Api = {
   generateTopics: (accountId: string) => Promise<IpcResult<Topic[]>>
   cancelTopicGeneration: (accountId: string) => Promise<IpcResult<void>>
   onTopicProgress: (handler: (progress: TopicProgress) => void) => () => void
+  getSession: (accountId: string, topicId: string) => Promise<IpcResult<Session>>
+  generateTurn: (accountId: string, topicId: string, aiReply: string) => Promise<IpcResult<Turn>>
+  abortTurn: (accountId: string, topicId: string) => Promise<IpcResult<void>>
+  onTurnDelta: (handler: (delta: TurnDelta) => void) => () => void
+  copyText: (text: string) => Promise<IpcResult<void>>
 }

@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { IPC, type Api, type TopicProgress } from '@shared/ipc'
+import { IPC, type Api, type TopicProgress, type TurnDelta } from '@shared/ipc'
 
 const api: Api = {
   listAccounts: () => ipcRenderer.invoke(IPC.accountsList),
@@ -24,7 +24,19 @@ const api: Api = {
     return () => {
       ipcRenderer.removeListener(IPC.topicsProgress, listener)
     }
-  }
+  },
+  getSession: (accountId, topicId) => ipcRenderer.invoke(IPC.sessionGet, accountId, topicId),
+  generateTurn: (accountId, topicId, aiReply) =>
+    ipcRenderer.invoke(IPC.sessionGenerate, accountId, topicId, aiReply),
+  abortTurn: (accountId, topicId) => ipcRenderer.invoke(IPC.sessionAbort, accountId, topicId),
+  onTurnDelta: (handler) => {
+    const listener = (_event: unknown, delta: TurnDelta): void => handler(delta)
+    ipcRenderer.on(IPC.sessionDelta, listener)
+    return () => {
+      ipcRenderer.removeListener(IPC.sessionDelta, listener)
+    }
+  },
+  copyText: (text) => ipcRenderer.invoke(IPC.clipboardWrite, text)
 }
 
 contextBridge.exposeInMainWorld('api', api)

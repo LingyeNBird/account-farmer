@@ -54,6 +54,17 @@ export function App() {
     []
   )
 
+  useEffect(
+    () =>
+      api.onTurnDelta((delta) => {
+        const state = useAppStore.getState()
+        if (delta.accountId === state.currentAccountId && delta.topicId === state.selectedTopicId) {
+          state.setTurnStreaming(delta.text)
+        }
+      }),
+    []
+  )
+
   const attempted = useRef<string | null>(null)
   const configured = isConfigured(settings, hasKey)
   useEffect(() => {

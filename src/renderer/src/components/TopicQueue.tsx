@@ -23,6 +23,8 @@ const seqLabel = (seq: number): string => String(seq).padStart(2, '0')
 
 export function TopicQueue() {
   const topics = useAppStore((state) => state.topics)
+  const selectedTopicId = useAppStore((state) => state.selectedTopicId)
+  const selectTopic = useAppStore((state) => state.selectTopic)
   const [page, setPage] = useState(0)
 
   const batches = groupBatches(topics)
@@ -63,7 +65,8 @@ export function TopicQueue() {
             {visible.map((topic) => (
               <NavLink
                 key={topic.id}
-                active={topic.status === 'active'}
+                active={topic.id === selectedTopicId}
+                onClick={() => void selectTopic(topic.id)}
                 color={topic.status === 'archived' ? 'teal' : 'indigo'}
                 label={
                   <Text fz={15} fw={500} lineClamp={1} lh={1.35}>

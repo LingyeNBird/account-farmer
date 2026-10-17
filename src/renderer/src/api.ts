@@ -1,12 +1,14 @@
-import type { IpcResult, TopicProgress } from '@shared/ipc'
+import type { IpcResult, TopicProgress, TurnDelta } from '@shared/ipc'
 import type {
   AccountsState,
   AccountSummary,
   ModelInfo,
   ProviderInfo,
   ProviderSettings,
+  Session,
   Settings,
-  Topic
+  Topic,
+  Turn
 } from '@shared/types'
 
 async function unwrap<T>(result: Promise<IpcResult<T>>): Promise<T> {
@@ -36,5 +38,13 @@ export const api = {
   cancelTopicGeneration: (accountId: string): Promise<void> =>
     unwrap(window.api.cancelTopicGeneration(accountId)),
   onTopicProgress: (handler: (progress: TopicProgress) => void): (() => void) =>
-    window.api.onTopicProgress(handler)
+    window.api.onTopicProgress(handler),
+  getSession: (accountId: string, topicId: string): Promise<Session> =>
+    unwrap(window.api.getSession(accountId, topicId)),
+  generateTurn: (accountId: string, topicId: string, aiReply: string): Promise<Turn> =>
+    unwrap(window.api.generateTurn(accountId, topicId, aiReply)),
+  abortTurn: (accountId: string, topicId: string): Promise<void> =>
+    unwrap(window.api.abortTurn(accountId, topicId)),
+  onTurnDelta: (handler: (delta: TurnDelta) => void): (() => void) => window.api.onTurnDelta(handler),
+  copyText: (text: string): Promise<void> => unwrap(window.api.copyText(text))
 }
