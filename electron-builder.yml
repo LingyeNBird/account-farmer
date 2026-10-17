@@ -1,0 +1,16 @@
+appId: com.aiaccountnurturing.app
+productName: AI 养号工作台
+directories:
+  output: dist
+  buildResources: resources
+files:
+  - out/**
+  - package.json
+win:
+  target:
+    - target: portable
+      arch:
+        - x64
+  artifactName: ai-account-nurturing-${version}.exe
+portable:
+  artifactName: ai-account-nurturing-${version}.exe

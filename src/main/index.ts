@@ -4,6 +4,9 @@ import { registerIpcHandlers } from './ipc'
 
 const APP_ID = 'com.aiaccountnurturing.app'
 
+// 固定 userData 目录名，避免打包后 productName 变化导致数据丢失。
+app.setName('ai-account-nurturing')
+
 function createWindow(): void {
   const window = new BrowserWindow({
     width: 1280,

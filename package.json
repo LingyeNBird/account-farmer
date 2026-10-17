@@ -9,7 +9,8 @@
     "build": "pnpm typecheck && electron-vite build",
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.json",
     "start": "electron-vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "package": "pnpm build && electron-builder --win portable"
   },
   "dependencies": {
     "@mantine/core": "9.7.2",
