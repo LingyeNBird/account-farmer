@@ -6,6 +6,7 @@ import { getApiKey } from '../store/secrets'
 import { appendTurn, loadSession } from '../store/sessions'
 import { loadSettings } from '../store/settings'
 import { archiveTopic, listTopics } from '../store/topics'
+import { createEmitThrottle } from './emitThrottle'
 import { buildModel } from './llm'
 import { countRepliesSinceFeedback } from './feedback'
 import { composeSystemPrompt } from './systemPrompt'
@@ -32,6 +33,8 @@ type RunOptions = {
   onDelta: (text: string) => void
 }
 
+const DELTA_INTERVAL_MS = 40
+
 async function streamOnce(options: RunOptions): Promise<string> {
   const { streamSimple } = await loadPiAi()
   const effort =
@@ -51,12 +54,17 @@ async function streamOnce(options: RunOptions): Promise<string> {
   )
 
   let raw = ''
+  const throttle = createEmitThrottle<string>(
+    (buffered) => options.onDelta(streamingText(buffered)),
+    DELTA_INTERVAL_MS
+  )
   for await (const event of events) {
     if (event.type === 'text_delta') {
       raw += event.delta
-      options.onDelta(streamingText(raw))
+      throttle.push(raw)
     }
   }
+  throttle.end()
 
   const final = await events.result()
   if (final.stopReason === 'aborted') throw new Error('已取消')
