@@ -2,7 +2,6 @@ import {
   Badge,
   Box,
   Button,
-  Grid,
   Group,
   NavLink,
   Paper,
@@ -77,13 +76,17 @@ export function Prompts() {
   }
 
   return (
-    <Box style={{ padding: '18px 22px 26px' }}>
-      <Stack gap="md">
+    <Box style={{ padding: '18px 22px 26px', height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Stack gap="md" style={{ flex: 1, minHeight: 0 }}>
         <PageHead title="提示词" />
 
-        <Grid gap="lg">
-          <Grid.Col span={3}>
-            <Paper withBorder radius="md" p={6}>
+        <Box style={{ display: 'flex', gap: 20, flex: 1, minHeight: 0 }}>
+          <Paper
+            withBorder
+            radius="md"
+            p={6}
+            style={{ width: 240, flexShrink: 0, alignSelf: 'flex-start', overflow: 'auto' }}
+          >
               <Stack gap={2}>
                 {PROMPT_KEYS.map((key) => (
                   <NavLink
@@ -102,11 +105,13 @@ export function Prompts() {
                   />
                 ))}
               </Stack>
-            </Paper>
-          </Grid.Col>
+          </Paper>
 
-          <Grid.Col span={9}>
-            <Paper withBorder radius="md">
+          <Paper
+            withBorder
+            radius="md"
+            style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}
+          >
               <Group justify="space-between" px="md" py="sm" style={{ borderBottom: '1px solid #efeff2' }}>
                 <Group gap="sm">
                   <Text size="sm" fw={600}>
@@ -126,9 +131,13 @@ export function Prompts() {
                 </Button>
               </Group>
 
-              <Box px="md" py="sm">
-                <Box style={{ border: '1px solid #e0e0e5', borderRadius: 8 }}>
-                  <ScrollArea h={420} type="auto">
+              <Box
+                px="md"
+                py="sm"
+                style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
+              >
+                <Box style={{ flex: 1, minHeight: 0, border: '1px solid #e0e0e5', borderRadius: 8 }}>
+                  <ScrollArea style={{ height: '100%' }} type="auto">
                     <Box p={10}>
                       <Textarea
                         ref={textareaRef}
@@ -198,9 +207,8 @@ export function Prompts() {
                   保存
                 </Button>
               </Group>
-            </Paper>
-          </Grid.Col>
-        </Grid>
+          </Paper>
+        </Box>
       </Stack>
     </Box>
   )
