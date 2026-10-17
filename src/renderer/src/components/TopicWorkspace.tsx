@@ -81,11 +81,6 @@ export function TopicWorkspace() {
   const activeTopic = topics.find((item) => item.status === 'active')
   const needsActivation = !archived && topic.status !== 'active' && activeTopic !== undefined
 
-  const lastTurn = turns[turns.length - 1]
-  const feedbackHint =
-    lastTurn && lastTurn.suggestFeedback !== undefined
-      ? { suggest: lastTurn.suggestFeedback, rounds: lastTurn.roundsSinceSuggestion ?? 0 }
-      : null
 
   const submit = async (): Promise<void> => {
     if (!paste.trim() || turnLoading) return
@@ -110,7 +105,6 @@ export function TopicWorkspace() {
       onChange={setPaste}
       canSubmit={Boolean(paste.trim()) && !turnLoading}
       generating={streaming}
-      feedbackHint={feedbackHint}
       onSubmit={() => void submit()}
       onAbort={() => void abortTurn()}
     />

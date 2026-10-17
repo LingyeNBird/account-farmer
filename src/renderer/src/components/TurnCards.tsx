@@ -13,14 +13,12 @@ export function CardHeader({
   step,
   title,
   right,
-  badge,
-  hint
+  badge
 }: {
   step?: number
   title: string
   right?: ReactNode
   badge?: ReactNode
-  hint?: ReactNode
 }) {
   return (
     <Group gap="sm" px="md" py="sm" style={{ borderBottom: '1px solid #efeff2' }}>
@@ -33,7 +31,6 @@ export function CardHeader({
         {title}
       </Text>
       {badge}
-      {hint}
       <Box style={{ flex: 1 }} />
       {right}
     </Group>
@@ -325,7 +322,6 @@ export function PasteCard({
   onChange,
   canSubmit,
   generating,
-  feedbackHint,
   onSubmit,
   onAbort
 }: {
@@ -333,7 +329,6 @@ export function PasteCard({
   onChange: (value: string) => void
   canSubmit: boolean
   generating: boolean
-  feedbackHint: { suggest: boolean; rounds: number } | null
   onSubmit: () => void
   onAbort: () => void
 }) {
@@ -342,17 +337,6 @@ export function PasteCard({
       <CardHeader
         step={2}
         title="粘贴回复"
-        hint={
-          feedbackHint ? (
-            <Text
-              size="xs"
-              c={feedbackHint.suggest ? 'indigo.6' : 'dimmed'}
-              fw={feedbackHint.suggest ? 600 : 400}
-            >
-              {feedbackHint.suggest ? '建议反馈' : `已间隔 ${feedbackHint.rounds} 轮，建议不反馈`}
-            </Text>
-          ) : undefined
-        }
         right={
           <Text key={value.length} className="flash" size="xs" c="dimmed" px={4} style={{ borderRadius: 4 }}>
             {value.length} 字符

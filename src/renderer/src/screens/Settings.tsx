@@ -256,30 +256,6 @@ function SettingsForm({ initial }: { initial: SettingsValue }) {
                 生成行为
               </Text>
               <NumberInput
-                label="反馈间隔 下限"
-                value={draft.feedback.intervalMin}
-                min={1}
-                max={50}
-                onChange={(value) =>
-                  setDraft((current) => ({
-                    ...current,
-                    feedback: { ...current.feedback, intervalMin: Number(value) || 2 }
-                  }))
-                }
-              />
-              <NumberInput
-                label="反馈间隔 上限"
-                value={draft.feedback.intervalMax}
-                min={1}
-                max={50}
-                onChange={(value) =>
-                  setDraft((current) => ({
-                    ...current,
-                    feedback: { ...current.feedback, intervalMax: Number(value) || 5 }
-                  }))
-                }
-              />
-              <NumberInput
                 label="主题最大轮数"
                 value={draft.limits.maxRounds}
                 min={1}

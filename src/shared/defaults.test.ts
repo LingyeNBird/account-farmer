@@ -33,14 +33,11 @@ describe('提示词清单', () => {
 })
 
 describe('反馈要求', () => {
-  it('系统提示词要求每轮都给出反馈', () => {
-    expect(DEFAULT_PROMPTS.system).toContain('每一轮都要给出这三个块')
-    expect(DEFAULT_PROMPTS.system).not.toContain('默认不给')
-  })
-
-  it('回合提示词不再把反馈说成可选', () => {
-    expect(DEFAULT_PROMPTS.turn).toContain('每一轮都要给出反馈三块')
-    expect(DEFAULT_PROMPTS.turn).not.toContain('可选反馈')
+  it('反馈由模型自行判断，不再强制每轮输出', () => {
+    expect(DEFAULT_PROMPTS.system).toContain('有明确判断时追加这三个块')
+    expect(DEFAULT_PROMPTS.system).not.toContain('每一轮都要给出')
+    expect(DEFAULT_PROMPTS.turn).toContain('不必每轮都有')
+    expect(DEFAULT_PROMPTS.turn).not.toContain('每一轮都要给出')
   })
 
   it('三个反馈标记仍在系统提示词的保护清单里', () => {

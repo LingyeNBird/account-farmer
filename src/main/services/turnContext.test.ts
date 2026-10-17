@@ -20,8 +20,6 @@ const turn = (index: number, feedback: boolean): Turn => ({
   messageEn: `msg ${index}`,
   messageZh: `发言 ${index}`,
   feedback: feedback ? { verdict: 'good', en: 'solid', zh: '到位' } : undefined,
-  suggestFeedback: false,
-  roundsSinceSuggestion: 1,
   ended: false,
   createdAt: 0
 })

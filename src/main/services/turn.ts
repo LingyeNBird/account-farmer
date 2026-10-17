@@ -1,17 +1,16 @@
-import type { Api, Model } from '@mariozechner/pi-ai'
+import type { Api, AssistantMessage, Message, Model, UserMessage } from '@mariozechner/pi-ai'
 import type { ReasoningEffort, Turn } from '@shared/types'
 import { ProtocolError, parseTurn, streamingText, type ParsedTurn } from '@shared/protocol'
 import { loadPrompts } from '../store/prompts'
 import { getApiKey } from '../store/secrets'
-import { loadFeedbackCadence, saveFeedbackCadence } from '../store/feedbackState'
 import { appendTurn, loadSession } from '../store/sessions'
 import { loadSettings } from '../store/settings'
 import { archiveTopic, listTopics } from '../store/topics'
 import { createEmitThrottle } from './emitThrottle'
 import { buildModel } from './llm'
-import { nextCadence } from './feedback'
 import { composeSystemPrompt } from './systemPrompt'
 import { buildUserMessage } from './turnContext'
+import { FEWSHOT_MESSAGES } from '@shared/fewshot'
 
 const loadPiAi = () => import('@mariozechner/pi-ai')
 
@@ -36,6 +35,34 @@ type RunOptions = {
 
 const DELTA_INTERVAL_MS = 40
 
+/** 示例按消息历史注入：assistant 消息要补齐 pi-ai 需要的元信息。 */
+function exampleHistory(model: Model<Api>): Message[] {
+  return FEWSHOT_MESSAGES.map((item): Message => {
+    if (item.role === 'assistant') {
+      const message: AssistantMessage = {
+        role: 'assistant',
+        content: [{ type: 'text', text: item.content }],
+        api: model.api,
+        provider: model.provider,
+        model: model.id,
+        usage: {
+          input: 0,
+          output: 0,
+          cacheRead: 0,
+          cacheWrite: 0,
+          totalTokens: 0,
+          cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 }
+        },
+        stopReason: 'stop',
+        timestamp: 0
+      }
+      return message
+    }
+    const message: UserMessage = { role: 'user', content: item.content, timestamp: 0 }
+    return message
+  })
+}
+
 async function streamOnce(options: RunOptions): Promise<string> {
   const { streamSimple } = await loadPiAi()
   const effort =
@@ -45,7 +72,10 @@ async function streamOnce(options: RunOptions): Promise<string> {
     options.model,
     {
       systemPrompt: options.systemPrompt,
-      messages: [{ role: 'user', content: options.userMessage, timestamp: Date.now() }]
+      messages: [
+        ...exampleHistory(options.model),
+        { role: 'user', content: options.userMessage, timestamp: Date.now() }
+      ]
     },
     {
       apiKey: options.apiKey,
@@ -157,18 +187,12 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
       createdAt: Date.now()
     }
   } else {
-    // 反馈内容由模型每轮固定产出；要不要建议发给对方由这里的随机节奏决定。
-    const cadence = await loadFeedbackCadence(options.accountId)
-    const next = nextCadence(cadence, settings.feedback)
-    await saveFeedbackCadence(options.accountId, next.cadence)
     turn = {
       index: session.turns.length + 1,
       aiReply: options.aiReply,
       messageEn: parsed.en,
       messageZh: parsed.zh,
       feedback: parsed.feedback,
-      suggestFeedback: next.suggest,
-      roundsSinceSuggestion: next.rounds,
       ended: false,
       createdAt: Date.now()
     }

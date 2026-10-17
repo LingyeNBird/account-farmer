@@ -9,10 +9,6 @@ export async function loadSettings(): Promise<Settings> {
       ...stored.provider,
       compat: { ...DEFAULT_SETTINGS.provider.compat, ...stored.provider?.compat }
     },
-    feedback: {
-      intervalMin: stored.feedback?.intervalMin ?? DEFAULT_SETTINGS.feedback.intervalMin,
-      intervalMax: stored.feedback?.intervalMax ?? DEFAULT_SETTINGS.feedback.intervalMax
-    },
     limits: { ...DEFAULT_SETTINGS.limits, ...stored.limits },
     notify: { ...DEFAULT_SETTINGS.notify, ...stored.notify }
   }
