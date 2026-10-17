@@ -33,7 +33,7 @@ export function TopicQueue() {
 
   return (
     <Stack gap={0} h="100%">
-      {batches.length > 1 && (
+      {batches.length > 0 && (
         <Group justify="center" gap="xs" p={6} style={{ borderBottom: '1px solid #e6e6ea' }}>
           <ActionIcon
             variant="default"

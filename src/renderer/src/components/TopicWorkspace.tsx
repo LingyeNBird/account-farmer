@@ -1,70 +1,8 @@
-import {
-  ActionIcon,
-  Alert,
-  Badge,
-  Box,
-  Button,
-  Group,
-  Paper,
-  Stack,
-  Text,
-  Textarea,
-  Title,
-  UnstyledButton
-} from '@mantine/core'
-import { IconChevronLeft, IconChevronRight, IconThumbDown, IconThumbUp } from '@tabler/icons-react'
-import { useEffect, useState, type ReactNode } from 'react'
-import type { Turn } from '@shared/types'
-import { api } from '../api'
+import { ActionIcon, Alert, Badge, Box, Group, Stack, Text, Title } from '@mantine/core'
+import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
+import { useEffect, useState } from 'react'
 import { useAppStore } from '../store'
-import { CopyButton } from './CopyButton'
-
-const wordCount = (text: string): number => text.trim().split(/\s+/).filter(Boolean).length
-const sentenceCount = (text: string): number => text.split(/[.!?]+/).filter((part) => part.trim()).length
-
-function SectionHeader({ step, title, right }: { step: number; title: string; right?: ReactNode }) {
-  return (
-    <Group justify="space-between" px="md" py="sm" style={{ borderBottom: '1px solid #efeff2' }}>
-      <Group gap="sm">
-        <Badge radius="xl" variant="filled" color="dark" miw={26} h={26} px={0}>
-          {step}
-        </Badge>
-        <Text size="sm" fw={600}>
-          {title}
-        </Text>
-      </Group>
-      {right}
-    </Group>
-  )
-}
-
-function FeedbackBlock({ turn }: { turn: Turn }) {
-  const feedback = turn.feedback
-  if (!feedback) return null
-  const positive = feedback.verdict === 'good'
-  return (
-    <Box px="md" pb="md">
-      <UnstyledButton
-        w="100%"
-        p="xs"
-        style={{ borderRadius: 6, border: '1px solid #efeff2' }}
-        onClick={() => void api.copyText(feedback.en)}
-      >
-        <Group gap={8} wrap="nowrap" align="flex-start">
-          <Box c={positive ? 'teal.6' : 'orange.6'} pt={2}>
-            {positive ? <IconThumbUp size={18} /> : <IconThumbDown size={18} />}
-          </Box>
-          <Box>
-            <Text size="sm">{feedback.en}</Text>
-            <Text size="xs" c="dimmed">
-              {feedback.zh}
-            </Text>
-          </Box>
-        </Group>
-      </UnstyledButton>
-    </Box>
-  )
-}
+import { OutgoingCard, PasteCard, ResultCard } from './TurnCards'
 
 export function TopicWorkspace() {
   const topics = useAppStore((state) => state.topics)
@@ -86,6 +24,7 @@ export function TopicWorkspace() {
   const total = turns.length
   const index = position === null ? Math.max(total, 1) : Math.min(position, Math.max(total, 1))
   const turn = total > 0 ? turns[index - 1] : undefined
+  const streaming = turnStreaming !== null
 
   useEffect(() => {
     setPosition(null)
@@ -101,13 +40,17 @@ export function TopicWorkspace() {
   const isLatest = index === total || total === 0
   const outgoingEn = turn?.messageEn || topic.openingEn
   const outgoingZh = turn?.messageZh || topic.openingZh
-  const resultEn = editedEn ?? turn?.messageEn ?? ''
-  const streaming = turnStreaming !== null
+
+  let repliesSinceFeedback = 0
+  for (let cursor = turns.length - 1; cursor >= 0; cursor -= 1) {
+    if (turns[cursor].feedback) break
+    repliesSinceFeedback += 1
+  }
 
   const submit = async (): Promise<void> => {
     if (!paste.trim() || turnLoading) return
     await generateTurn(paste)
-    setPaste('')
+    if (!useAppStore.getState().error) setPaste('')
   }
 
   return (
@@ -115,19 +58,22 @@ export function TopicWorkspace() {
       <Stack gap="md">
         <Group justify="space-between" align="flex-start" wrap="nowrap">
           <Box>
-            <Text size="xs" c="dimmed">
-              主题 {topic.seq}
-            </Text>
-            <Title order={4} mt={2}>
-              {topic.title}
-            </Title>
-            <Group gap={6} mt={6}>
+            <Group gap={6} wrap="nowrap">
+              <Badge variant="filled" color="dark" radius="sm">
+                主题 {topic.seq}
+              </Badge>
               {topic.domains.map((domain) => (
                 <Badge key={domain} variant="light" color="gray" radius="sm">
                   {domain}
                 </Badge>
               ))}
+              <Badge variant="light" color="gray" radius="sm">
+                第 {index} 轮
+              </Badge>
             </Group>
+            <Title order={4} mt={6}>
+              {topic.title}
+            </Title>
           </Box>
           <Group gap={4} wrap="nowrap">
             <ActionIcon
@@ -160,107 +106,51 @@ export function TopicWorkspace() {
           </Alert>
         )}
 
-        <Paper withBorder radius="md">
-          <SectionHeader
-            step={1}
-            title="发给目标 AI"
-            right={
-              <Group gap={10}>
-                <Text size="xs" c="dimmed">
-                  {wordCount(outgoingEn)} 词
-                </Text>
-                <Text size="xs" c="dimmed">
-                  {sentenceCount(outgoingEn)} 句
-                </Text>
-                <CopyButton text={outgoingEn} label="复制英文" />
-              </Group>
-            }
-          />
-          <Box px="md" py="sm">
-            <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
-              {outgoingEn}
-            </Text>
-            <Text size="sm" c="dimmed" mt={10} style={{ whiteSpace: 'pre-wrap' }}>
-              {outgoingZh}
-            </Text>
-          </Box>
-        </Paper>
-
-        {isLatest && !streaming && (
-          <Paper withBorder radius="md">
-            <SectionHeader step={2} title="粘贴回复" />
-            <Box px="md" py="sm">
-              <Textarea
+        {streaming ? (
+          <>
+            <OutgoingCard en={outgoingEn} zh={outgoingZh} />
+            {isLatest && (
+              <PasteCard
                 value={paste}
-                onChange={(event) => setPaste(event.currentTarget.value)}
-                autosize={false}
-                minRows={2}
-                maxRows={2}
-                placeholder=""
+                onChange={setPaste}
+                disabled
+                canSubmit={false}
+                hideAction
+                repliesSinceFeedback={repliesSinceFeedback}
+                onSubmit={() => void submit()}
               />
-            </Box>
-            <Group justify="space-between" px="md" pb="sm">
-              <Text size="xs" c="dimmed">
-                {paste.length} 字符
-              </Text>
-              {turnLoading ? (
-                <Button size="compact-sm" variant="default" onClick={() => void abortTurn()}>
-                  取消
-                </Button>
-              ) : (
-                <Button size="compact-sm" disabled={!paste.trim()} onClick={() => void submit()}>
-                  生成下一段
-                </Button>
-              )}
-            </Group>
-          </Paper>
-        )}
-
-        {(streaming || turn) && (
-          <Paper withBorder radius="md">
-            <SectionHeader
-              step={3}
-              title="生成结果"
-              right={
-                turn && !streaming ? (
-                  <CopyButton text={resultEn} label="复制正文" />
-                ) : (
-                  <Text size="xs" c="dimmed">
-                    生成中
-                  </Text>
-                )
-              }
-            />
-            {streaming ? (
-              <Box px="md" py="sm">
-                <Text size="sm" c="dimmed" style={{ whiteSpace: 'pre-wrap' }}>
-                  {turnStreaming}
-                </Text>
-              </Box>
-            ) : turn?.ended ? (
-              <Box px="md" py="sm">
-                <Text size="sm" c="dimmed">
-                  本轮判定结束
-                </Text>
-              </Box>
-            ) : (
-              <>
-                <Box px="md" py="sm">
-                  <Textarea
-                    value={resultEn}
-                    onChange={(event) => setEditedEn(event.currentTarget.value)}
-                    autosize
-                    minRows={3}
-                    variant="unstyled"
-                  />
-                  <Text size="sm" c="dimmed" style={{ whiteSpace: 'pre-wrap' }}>
-                    {turn?.messageZh}
-                  </Text>
-                </Box>
-                {turn && <FeedbackBlock turn={turn} />}
-              </>
             )}
-          </Paper>
+            <ResultCard
+              turn={undefined}
+              streamingText={turnStreaming}
+              editedEn={editedEn}
+              onEditEn={setEditedEn}
+              onAbort={() => void abortTurn()}
+            />
+          </>
+        ) : (
+          <>
+            {turn ? (
+              <ResultCard
+                turn={turn}
+                streamingText={null}
+                editedEn={editedEn}
+                onEditEn={setEditedEn}
+              />
+            ) : (
+              <OutgoingCard en={outgoingEn} zh={outgoingZh} />
+            )}
+            {isLatest && (
+              <PasteCard
+                value={paste}
+                onChange={setPaste}
+                disabled={turnLoading}
+                canSubmit={Boolean(paste.trim()) && !turnLoading}
+                repliesSinceFeedback={repliesSinceFeedback}
+                onSubmit={() => void submit()}
+              />
+            )}
+          </>
         )}
       </Stack>
     </Box>
