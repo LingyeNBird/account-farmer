@@ -1,4 +1,5 @@
 import { AppShell, Button, Group, Text } from '@mantine/core'
+import { IconFileText, IconSettings, IconUser } from '@tabler/icons-react'
 import { useAppStore } from './store'
 import { Accounts } from './screens/Accounts'
 import { Prompts } from './screens/Prompts'
@@ -21,16 +22,34 @@ export function App() {
             AI 养号工作台
           </Text>
           <Group gap={4} wrap="nowrap">
-            <Text size="xs" c="dimmed" mr="xs">
-              未配置模型
-            </Text>
-            <Button variant="subtle" color="gray" size="compact-sm" onClick={() => setView('accounts')}>
+            <Button
+              variant="subtle"
+              color="gray"
+              size="compact-sm"
+              leftSection={<IconUser size={15} />}
+              onClick={() => setView('accounts')}
+            >
               账号
             </Button>
-            <Button variant="subtle" color="gray" size="compact-sm" onClick={() => setView('prompts')}>
+            <Text size="xs" c="dimmed" px="xs">
+              未配置模型
+            </Text>
+            <Button
+              variant="subtle"
+              color="gray"
+              size="compact-sm"
+              leftSection={<IconFileText size={15} />}
+              onClick={() => setView('prompts')}
+            >
               提示词
             </Button>
-            <Button variant="subtle" color="gray" size="compact-sm" onClick={() => setView('settings')}>
+            <Button
+              variant="subtle"
+              color="gray"
+              size="compact-sm"
+              leftSection={<IconSettings size={15} />}
+              onClick={() => setView('settings')}
+            >
               设置
             </Button>
           </Group>

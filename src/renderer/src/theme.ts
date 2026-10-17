@@ -1,7 +1,8 @@
 import { createTheme } from '@mantine/core'
 
 export const theme = createTheme({
-  fontFamily: '"Inter", "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif',
+  fontFamily:
+    '"Segoe UI Variable Text", "Segoe UI", "MiSans", "HarmonyOS Sans SC", "Microsoft YaHei UI", sans-serif',
   primaryColor: 'indigo',
   defaultRadius: 'md'
 })
