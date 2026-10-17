@@ -1,5 +1,13 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { IPC, type Api, type RefillFocus, type RefillState, type TopicProgress, type TurnDelta } from '@shared/ipc'
+import {
+  IPC,
+  type Api,
+  type RefillFocus,
+  type RefillState,
+  type TopicProgress,
+  type TurnDelta,
+  type UpdateProgress
+} from '@shared/ipc'
 
 const api: Api = {
   listAccounts: () => ipcRenderer.invoke(IPC.accountsList),
@@ -60,7 +68,18 @@ const api: Api = {
       ipcRenderer.removeListener(IPC.sessionDelta, listener)
     }
   },
-  copyText: (text) => ipcRenderer.invoke(IPC.clipboardWrite, text)
+  copyText: (text) => ipcRenderer.invoke(IPC.clipboardWrite, text),
+  getAppVersion: () => ipcRenderer.invoke(IPC.updateVersion),
+  checkUpdate: () => ipcRenderer.invoke(IPC.updateCheck),
+  downloadUpdate: () => ipcRenderer.invoke(IPC.updateDownload),
+  installUpdate: () => ipcRenderer.invoke(IPC.updateInstall),
+  onUpdateProgress: (handler) => {
+    const listener = (_event: unknown, progress: UpdateProgress): void => handler(progress)
+    ipcRenderer.on(IPC.updateProgress, listener)
+    return () => {
+      ipcRenderer.removeListener(IPC.updateProgress, listener)
+    }
+  }
 }
 
 contextBridge.exposeInMainWorld('api', api)

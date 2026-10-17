@@ -13,6 +13,7 @@ import {
   TextInput
 } from '@mantine/core'
 import { useEffect, useState } from 'react'
+import type { UpdateInfo, UpdateProgress } from '@shared/ipc'
 import type { ModelInfo, ProviderInfo, ReasoningEffort, Settings as SettingsValue } from '@shared/types'
 import { api } from '../api'
 import { PageHead } from '../components/PageHead'
@@ -36,6 +37,53 @@ function SettingsForm({ initial }: { initial: SettingsValue }) {
   const saveSettings = useAppStore((state) => state.saveSettings)
 
   const [draft, setDraft] = useState<SettingsValue>(initial)
+  const [version, setVersion] = useState('')
+  const [update, setUpdate] = useState<UpdateInfo | null>(null)
+  const [checking, setChecking] = useState(false)
+  const [downloading, setDownloading] = useState(false)
+  const [progress, setProgress] = useState<UpdateProgress | null>(null)
+  const [updateError, setUpdateError] = useState('')
+
+  useEffect(() => {
+    void api
+      .getAppVersion()
+      .then(setVersion)
+      .catch(() => setVersion(''))
+    return api.onUpdateProgress(setProgress)
+  }, [])
+
+  const checkUpdate = async (): Promise<void> => {
+    setChecking(true)
+    setUpdateError('')
+    setProgress(null)
+    try {
+      setUpdate(await api.checkUpdate())
+    } catch (error) {
+      setUpdateError(error instanceof Error ? error.message : String(error))
+    } finally {
+      setChecking(false)
+    }
+  }
+
+  const downloadUpdate = async (): Promise<void> => {
+    setDownloading(true)
+    setUpdateError('')
+    try {
+      await api.downloadUpdate()
+    } catch (error) {
+      setUpdateError(error instanceof Error ? error.message : String(error))
+    } finally {
+      setDownloading(false)
+    }
+  }
+
+  const installUpdate = async (): Promise<void> => {
+    try {
+      await api.installUpdate()
+    } catch (error) {
+      setUpdateError(error instanceof Error ? error.message : String(error))
+    }
+  }
   const [apiKey, setApiKey] = useState('')
   const [providers, setProviders] = useState<ProviderInfo[]>([])
   const [models, setModels] = useState<ModelInfo[]>([])
@@ -282,6 +330,60 @@ function SettingsForm({ initial }: { initial: SettingsValue }) {
                   }))
                 }
               />
+
+              <Divider my="xs" />
+              <Text size="sm" fw={600}>
+                版本与更新
+              </Text>
+              <Group gap="xs">
+                <Text size="sm" c="dimmed">
+                  当前版本 {version || '—'}
+                </Text>
+                <Button size="compact-sm" variant="default" loading={checking} onClick={() => void checkUpdate()}>
+                  检查更新
+                </Button>
+              </Group>
+              {update && (
+                <Text size="sm" c={update.available ? undefined : 'dimmed'}>
+                  {update.dev
+                    ? '开发模式不检查更新'
+                    : update.available
+                      ? `发现新版本 ${update.latestVersion}`
+                      : '已是最新版本'}
+                </Text>
+              )}
+              {update?.available && !update.canWrite && (
+                <Text size="sm" c="red.6">
+                  {update.reason ?? '当前程序无法自动替换'}
+                </Text>
+              )}
+              {update?.available && update.canWrite && (
+                <Group gap="xs">
+                  <Button
+                    size="compact-sm"
+                    loading={downloading}
+                    disabled={progress?.state === 'ready'}
+                    onClick={() => void downloadUpdate()}
+                  >
+                    {progress?.state === 'ready' ? '已下载' : '下载更新'}
+                  </Button>
+                  {progress?.state === 'downloading' && (
+                    <Text size="xs" c="dimmed">
+                      {Math.floor(progress.received / 1048576)} / {Math.floor(progress.total / 1048576)} MB
+                    </Text>
+                  )}
+                </Group>
+              )}
+              {progress?.state === 'ready' && (
+                <Button size="compact-sm" onClick={() => void installUpdate()}>
+                  重启并安装
+                </Button>
+              )}
+              {updateError && (
+                <Text size="sm" c="red.6">
+                  {updateError}
+                </Text>
+              )}
             </Stack>
           </Grid.Col>
         </Grid>

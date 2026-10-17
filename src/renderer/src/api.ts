@@ -1,4 +1,13 @@
-import type { IpcResult, PromptMap, RefillFocus, RefillState, TopicProgress, TurnDelta } from '@shared/ipc'
+import type {
+  IpcResult,
+  PromptMap,
+  RefillFocus,
+  RefillState,
+  TopicProgress,
+  TurnDelta,
+  UpdateInfo,
+  UpdateProgress
+} from '@shared/ipc'
 import type { PromptKey } from '@shared/defaults'
 import type {
   AccountsState,
@@ -70,5 +79,11 @@ export const api = {
   abortTurn: (accountId: string, topicId: string): Promise<void> =>
     unwrap(window.api.abortTurn(accountId, topicId)),
   onTurnDelta: (handler: (delta: TurnDelta) => void): (() => void) => window.api.onTurnDelta(handler),
-  copyText: (text: string): Promise<void> => unwrap(window.api.copyText(text))
+  copyText: (text: string): Promise<void> => unwrap(window.api.copyText(text)),
+  getAppVersion: (): Promise<string> => unwrap(window.api.getAppVersion()),
+  checkUpdate: (): Promise<UpdateInfo> => unwrap(window.api.checkUpdate()),
+  downloadUpdate: (): Promise<void> => unwrap(window.api.downloadUpdate()),
+  installUpdate: (): Promise<void> => unwrap(window.api.installUpdate()),
+  onUpdateProgress: (handler: (progress: UpdateProgress) => void): (() => void) =>
+    window.api.onUpdateProgress(handler)
 }

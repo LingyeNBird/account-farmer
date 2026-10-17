@@ -48,13 +48,35 @@ export const IPC = {
   sessionGenerate: 'session:generate',
   sessionAbort: 'session:abort',
   sessionDelta: 'session:delta',
-  clipboardWrite: 'clipboard:write'
+  clipboardWrite: 'clipboard:write',
+  updateVersion: 'update:version',
+  updateCheck: 'update:check',
+  updateDownload: 'update:download',
+  updateInstall: 'update:install',
+  updateProgress: 'update:progress'
 } as const
 
 export type TurnDelta = {
   accountId: string
   topicId: string
   text: string
+}
+
+export type UpdateInfo = {
+  dev: boolean
+  currentVersion: string
+  latestVersion: string | null
+  available: boolean
+  canWrite: boolean
+  reason?: string
+  size: number
+  notes: string
+}
+
+export type UpdateProgress = {
+  state: 'downloading' | 'ready'
+  received: number
+  total: number
 }
 
 export type RefillState = {
@@ -112,4 +134,9 @@ export type Api = {
   abortTurn: (accountId: string, topicId: string) => Promise<IpcResult<void>>
   onTurnDelta: (handler: (delta: TurnDelta) => void) => () => void
   copyText: (text: string) => Promise<IpcResult<void>>
+  getAppVersion: () => Promise<IpcResult<string>>
+  checkUpdate: () => Promise<IpcResult<UpdateInfo>>
+  downloadUpdate: () => Promise<IpcResult<void>>
+  installUpdate: () => Promise<IpcResult<void>>
+  onUpdateProgress: (handler: (progress: UpdateProgress) => void) => () => void
 }
