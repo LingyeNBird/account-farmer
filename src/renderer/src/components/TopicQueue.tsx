@@ -69,7 +69,7 @@ export function TopicQueue() {
                 onClick={() => void selectTopic(topic.id)}
                 color={topic.status === 'archived' ? 'teal' : 'indigo'}
                 label={
-                  <Text fz={15} fw={500} lineClamp={1} lh={1.35}>
+                  <Text fz={15} fw={600} lineClamp={1} lh={1.35}>
                     {topic.title}
                   </Text>
                 }

@@ -58,13 +58,13 @@ export function OutgoingCard({ en, zh }: { en: string; zh: string }) {
       <Grid gap="lg" p="md">
         <Grid.Col span={6}>
           <ColumnHead left="英文" />
-          <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+          <Text size="sm" fw={500} style={{ whiteSpace: 'pre-wrap' }}>
             {en}
           </Text>
         </Grid.Col>
         <Grid.Col span={6}>
           <ColumnHead left="中文对照" />
-          <Text size="sm" c="dimmed" style={{ whiteSpace: 'pre-wrap' }}>
+          <Text size="sm" c="dimmed" fw={500} style={{ whiteSpace: 'pre-wrap' }}>
             {zh}
           </Text>
         </Grid.Col>
@@ -93,7 +93,7 @@ export function ReplyCard({ text }: { text: string }) {
         }
       />
       <Box px="md" py="sm">
-        <Text size="sm" style={{ whiteSpace: 'pre-wrap' }}>
+        <Text size="sm" fw={500} style={{ whiteSpace: 'pre-wrap' }}>
           {text}
         </Text>
       </Box>
@@ -145,7 +145,7 @@ export function ResultCard({
 
       {streaming ? (
         <Box px="md" py="sm">
-          <Text size="sm" c="dimmed" style={{ whiteSpace: 'pre-wrap' }}>
+          <Text size="sm" c="dimmed" fw={500} style={{ whiteSpace: 'pre-wrap' }}>
             {streamingText}
           </Text>
         </Box>
@@ -179,7 +179,7 @@ export function ResultCard({
             </Grid.Col>
             <Grid.Col span={6}>
               <ColumnHead left="中文对照" />
-              <Text size="sm" c="dimmed" style={{ whiteSpace: 'pre-wrap' }}>
+              <Text size="sm" c="dimmed" fw={500} style={{ whiteSpace: 'pre-wrap' }}>
                 {turn?.messageZh}
               </Text>
             </Grid.Col>
@@ -197,7 +197,7 @@ export function ResultCard({
                     {positive ? <IconThumbUp size={18} /> : <IconThumbDown size={18} />}
                   </Box>
                   <Box>
-                    <Text size="sm">{turn.feedback.en}</Text>
+                    <Text size="sm" fw={500}>{turn.feedback.en}</Text>
                     <Text size="xs" c="dimmed" mt={2}>
                       {turn.feedback.zh}
                     </Text>
