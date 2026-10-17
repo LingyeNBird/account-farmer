@@ -1,9 +1,9 @@
 import type { Api, AssistantMessage, Message, Model, UserMessage } from '@mariozechner/pi-ai'
-import type { ReasoningEffort, Turn } from '@shared/types'
+import type { ReasoningEffort, Session, Turn } from '@shared/types'
 import { ProtocolError, parseTurn, streamingText, type ParsedTurn } from '@shared/protocol'
 import { loadPrompts } from '../store/prompts'
 import { getApiKey } from '../store/secrets'
-import { appendTurn, loadSession } from '../store/sessions'
+import { loadSession, saveSession } from '../store/sessions'
 import { loadSettings } from '../store/settings'
 import { archiveTopic, listTopics } from '../store/topics'
 import { createEmitThrottle } from './emitThrottle'
@@ -18,7 +18,7 @@ const loadPiAi = () => import('@mariozechner/pi-ai')
 type GenerateTurnOptions = {
   accountId: string
   topicId: string
-  aiReply: string
+  reply: string
   signal: AbortSignal
   onDelta: (text: string) => void
 }
@@ -34,6 +34,17 @@ type RunOptions = {
 }
 
 const DELTA_INTERVAL_MS = 40
+
+/** 本次粘贴的回复属于上一条发言：没有轮次时挂在开场，否则挂在最后一轮。 */
+function attachReply(session: Session, reply: string, turn: Turn): Session {
+  if (session.turns.length === 0) {
+    return { ...session, openingReply: reply, turns: [turn] }
+  }
+  const turns = session.turns.map((item, index) =>
+    index === session.turns.length - 1 ? { ...item, reply } : item
+  )
+  return { ...session, turns: [...turns, turn] }
+}
 
 /** 示例按消息历史注入：assistant 消息要补齐 pi-ai 需要的元信息。 */
 function exampleHistory(model: Model<Api>): Message[] {
@@ -119,14 +130,17 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
   if (session.turns.length >= maxRounds) {
     const endedTurn: Turn = {
       index: session.turns.length + 1,
-      aiReply: options.aiReply,
       messageEn: '',
       messageZh: '',
       ended: true,
       endReason: `达到上限 ${maxRounds} 轮`,
       createdAt: Date.now()
     }
-    await appendTurn(options.accountId, options.topicId, endedTurn)
+    await saveSession(
+      options.accountId,
+      options.topicId,
+      attachReply(session, options.reply, endedTurn)
+    )
     await archiveTopic(options.accountId, options.topicId)
     return endedTurn
   }
@@ -135,8 +149,10 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
   const systemPrompt = composeSystemPrompt(prompts)
 
   const userMessage = buildUserMessage({
-    current: { topic, turns: session.turns },
-    aiReply: options.aiReply,
+    topic,
+    openingReply: session.openingReply,
+    turns: session.turns,
+    reply: options.reply,
     round: session.turns.length + 1
   })
 
@@ -175,30 +191,30 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
     }
   }
 
-  let turn: Turn
-  if (parsed.kind === 'end') {
-    turn = {
-      index: session.turns.length + 1,
-      aiReply: options.aiReply,
-      messageEn: '',
-      messageZh: '',
-      ended: true,
-      endReason: parsed.reason,
-      createdAt: Date.now()
-    }
-  } else {
-    turn = {
-      index: session.turns.length + 1,
-      aiReply: options.aiReply,
-      messageEn: parsed.en,
-      messageZh: parsed.zh,
-      feedback: parsed.feedback,
-      ended: false,
-      createdAt: Date.now()
-    }
-  }
+  const turn: Turn =
+    parsed.kind === 'end'
+      ? {
+          index: session.turns.length + 1,
+          messageEn: '',
+          messageZh: '',
+          ended: true,
+          endReason: parsed.reason,
+          createdAt: Date.now()
+        }
+      : {
+          index: session.turns.length + 1,
+          messageEn: parsed.en,
+          messageZh: parsed.zh,
+          feedback: parsed.feedback,
+          ended: false,
+          createdAt: Date.now()
+        }
 
-  await appendTurn(options.accountId, options.topicId, turn)
+  await saveSession(
+    options.accountId,
+    options.topicId,
+    attachReply(session, options.reply, turn)
+  )
   if (turn.ended) await archiveTopic(options.accountId, options.topicId)
   return turn
 }

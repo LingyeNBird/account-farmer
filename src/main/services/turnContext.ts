@@ -1,12 +1,11 @@
 import type { Topic, Turn } from '@shared/types'
 
-export type ContextTopic = { topic: Topic; turns: Turn[] }
-
 const MAX_CONTEXT_CHARS = 30000
 
 function formatTurn(turn: Turn): string {
-  const lines = [`### 第 ${turn.index} 轮`, `对方回复：${turn.aiReply}`]
+  const lines = [`### 第 ${turn.index} 轮`]
   if (turn.messageEn) lines.push(`我方发言：${turn.messageEn}`)
+  if (turn.reply) lines.push(`对方回复：${turn.reply}`)
   if (turn.feedback) lines.push(`反馈：${turn.feedback.verdict} / ${turn.feedback.en}`)
   return lines.join('\n')
 }
@@ -24,18 +23,20 @@ function trimTurns(turns: Turn[], budget: number): Turn[] {
 }
 
 export function buildUserMessage(input: {
-  current: ContextTopic
-  aiReply: string
+  topic: Topic
+  openingReply?: string
+  turns: Turn[]
+  reply: string
   round: number
 }): string {
-  const { current } = input
-  const turns = trimTurns(current.turns, Math.floor(MAX_CONTEXT_CHARS * 0.6))
+  const turns = trimTurns(input.turns, Math.floor(MAX_CONTEXT_CHARS * 0.6))
   const history = turns.map(formatTurn).join('\n\n')
 
   const sections = [
-    `# 主题简报\n标题：${current.topic.title}\n领域：${current.topic.domains.join('、')}\n开场英文：${current.topic.openingEn}`,
+    `# 主题简报\n标题：${input.topic.title}\n领域：${input.topic.domains.join('、')}\n开场英文：${input.topic.openingEn}`,
+    input.openingReply ? `# 开场后对方的回复\n${input.openingReply}` : '',
     history ? `# 本主题已完成的轮次\n${history}` : '',
-    `# 本轮对方回复\n${input.aiReply}`,
+    `# 本轮对方回复\n${input.reply}`,
     `# 控制变量\nround: ${input.round}`
   ]
 

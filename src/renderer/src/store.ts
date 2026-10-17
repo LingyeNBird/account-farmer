@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { TopicProgress } from '@shared/ipc'
+import { SESSION_VERSION } from '@shared/types'
 import type { AccountSummary, Session, Settings, Topic } from '@shared/types'
 import { api } from './api'
 
@@ -32,7 +33,7 @@ type AppState = {
   setRefilling: (value: boolean) => void
   refillTopics: () => Promise<void>
   cancelRefill: () => Promise<void>
-  generateTurn: (aiReply: string) => Promise<void>
+  generateTurn: (reply: string) => Promise<void>
   endTopic: () => Promise<void>
   activateTopic: (topicId: string) => Promise<void>
   deleteTopic: (topicId: string) => Promise<void>
@@ -164,19 +165,28 @@ export const useAppStore = create<AppState>((set, get) => ({
     )
   },
 
-  generateTurn: async (aiReply) => {
+  generateTurn: async (reply) => {
     const accountId = get().currentAccountId
     const topicId = get().selectedTopicId
     if (!accountId || !topicId) return
     set({ turnLoading: true, turnStreaming: '', error: null })
     try {
-      const turn = await api.generateTurn(accountId, topicId, aiReply)
-      const session = get().session
-      set({
-        session: session
-          ? { ...session, turns: [...session.turns, turn] }
-          : { topicId, turns: [turn] }
-      })
+      const turn = await api.generateTurn(accountId, topicId, reply)
+      const base: Session = get().session ?? { topicId, version: SESSION_VERSION, turns: [] }
+      // 粘贴的回复属于上一条发言：没有轮次时挂在开场，否则挂在最后一轮。
+      const withReply: Session =
+        base.turns.length === 0
+          ? { ...base, openingReply: reply, turns: [turn] }
+          : {
+              ...base,
+              turns: [
+                ...base.turns.map((item, index) =>
+                  index === base.turns.length - 1 ? { ...item, reply } : item
+                ),
+                turn
+              ]
+            }
+      set({ session: withReply })
       if (turn.ended) {
         const topics = await api.listTopics(accountId)
         const next = topics.find((topic) => topic.status === 'active') ?? topics[0]

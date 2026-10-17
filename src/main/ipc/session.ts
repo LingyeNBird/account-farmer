@@ -12,8 +12,8 @@ const keyOf = (accountId: string, topicId: string): string => `${accountId}:${to
 export function registerSessionHandlers(): void {
   handle(IPC.sessionGet, (accountId: string, topicId: string) => loadSession(accountId, topicId))
 
-  handle(IPC.sessionGenerate, async (accountId: string, topicId: string, aiReply: string) => {
-    if (!aiReply.trim()) throw new Error('回复不能为空')
+  handle(IPC.sessionGenerate, async (accountId: string, topicId: string, reply: string) => {
+    if (!reply.trim()) throw new Error('回复不能为空')
     const key = keyOf(accountId, topicId)
     if (controllers.has(key)) throw new Error('正在生成')
 
@@ -23,7 +23,7 @@ export function registerSessionHandlers(): void {
       return await generateTurn({
         accountId,
         topicId,
-        aiReply,
+        reply,
         signal: controller.signal,
         onDelta: (text) => broadcast(IPC.sessionDelta, { accountId, topicId, text })
       })

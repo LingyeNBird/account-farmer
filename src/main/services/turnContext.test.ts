@@ -14,12 +14,12 @@ const topic: Topic = {
   createdAt: 0
 }
 
-const turn = (index: number, feedback: boolean): Turn => ({
+const turn = (index: number, reply?: string): Turn => ({
   index,
-  aiReply: `reply ${index}`,
   messageEn: `msg ${index}`,
   messageZh: `发言 ${index}`,
-  feedback: feedback ? { verdict: 'good', en: 'solid', zh: '到位' } : undefined,
+  feedback: index === 1 ? { verdict: 'good', en: 'solid', zh: '到位' } : undefined,
+  reply,
   ended: false,
   createdAt: 0
 })
@@ -27,8 +27,10 @@ const turn = (index: number, feedback: boolean): Turn => ({
 describe('buildUserMessage', () => {
   it('控制变量只剩 round，不再暴露反馈节奏变量', () => {
     const text = buildUserMessage({
-      current: { topic, turns: [turn(1, true)] },
-      aiReply: '对方的第二条回复',
+      topic,
+      openingReply: '对方对开场的回复',
+      turns: [turn(1, '对方对第一轮的回复')],
+      reply: '对方的第二条回复',
       round: 2
     })
 
@@ -37,25 +39,47 @@ describe('buildUserMessage', () => {
     expect(text).not.toContain('force_feedback')
   })
 
-  it('历史里带反馈的轮次会写明判定与反馈内容', () => {
+  it('历史按「我方发言 → 对方回复」的顺序排列', () => {
     const text = buildUserMessage({
-      current: { topic, turns: [turn(1, true), turn(2, false)] },
-      aiReply: '第三条',
-      round: 3
+      topic,
+      openingReply: '开场的回复',
+      turns: [turn(1, '第一轮的回复')],
+      reply: '本轮输入',
+      round: 2
     })
 
-    expect(text).toContain('反馈：good / solid')
-    expect(text).toContain('### 第 2 轮')
+    const mine = text.indexOf('我方发言：msg 1')
+    const theirs = text.indexOf('对方回复：第一轮的回复')
+    expect(mine).toBeGreaterThan(-1)
+    expect(theirs).toBeGreaterThan(mine)
+    expect(text.indexOf('反馈：good / solid')).toBeGreaterThan(theirs)
   })
 
-  it('没有历史轮次时省略该段', () => {
+  it('开场回复单独成段，放在历史之前', () => {
     const text = buildUserMessage({
-      current: { topic, turns: [] },
-      aiReply: '第一条回复',
+      topic,
+      openingReply: '开场的回复',
+      turns: [turn(1, '第一轮的回复')],
+      reply: '本轮输入',
+      round: 2
+    })
+
+    const opening = text.indexOf('# 开场后对方的回复')
+    expect(opening).toBeGreaterThan(-1)
+    expect(text.indexOf('# 本主题已完成的轮次')).toBeGreaterThan(opening)
+  })
+
+  it('没有历史轮次时省略该段，开场回复仍然保留', () => {
+    const text = buildUserMessage({
+      topic,
+      openingReply: '开场的回复',
+      turns: [],
+      reply: '第一条回复',
       round: 1
     })
 
     expect(text).not.toContain('# 本主题已完成的轮次')
+    expect(text).toContain('# 开场后对方的回复\n开场的回复')
     expect(text).toContain('# 本轮对方回复\n第一条回复')
   })
 })

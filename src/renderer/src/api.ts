@@ -65,8 +65,8 @@ export const api = {
     window.api.onTopicProgress(handler),
   getSession: (accountId: string, topicId: string): Promise<Session> =>
     unwrap(window.api.getSession(accountId, topicId)),
-  generateTurn: (accountId: string, topicId: string, aiReply: string): Promise<Turn> =>
-    unwrap(window.api.generateTurn(accountId, topicId, aiReply)),
+  generateTurn: (accountId: string, topicId: string, reply: string): Promise<Turn> =>
+    unwrap(window.api.generateTurn(accountId, topicId, reply)),
   abortTurn: (accountId: string, topicId: string): Promise<void> =>
     unwrap(window.api.abortTurn(accountId, topicId)),
   onTurnDelta: (handler: (delta: TurnDelta) => void): (() => void) => window.api.onTurnDelta(handler),

@@ -108,7 +108,7 @@ export type Api = {
   resetPrompt: (key: PromptKey) => Promise<IpcResult<PromptMap>>
   onTopicProgress: (handler: (progress: TopicProgress) => void) => () => void
   getSession: (accountId: string, topicId: string) => Promise<IpcResult<Session>>
-  generateTurn: (accountId: string, topicId: string, aiReply: string) => Promise<IpcResult<Turn>>
+  generateTurn: (accountId: string, topicId: string, reply: string) => Promise<IpcResult<Turn>>
   abortTurn: (accountId: string, topicId: string) => Promise<IpcResult<void>>
   onTurnDelta: (handler: (delta: TurnDelta) => void) => () => void
   copyText: (text: string) => Promise<IpcResult<void>>

@@ -50,8 +50,8 @@ const api: Api = {
     }
   },
   getSession: (accountId, topicId) => ipcRenderer.invoke(IPC.sessionGet, accountId, topicId),
-  generateTurn: (accountId, topicId, aiReply) =>
-    ipcRenderer.invoke(IPC.sessionGenerate, accountId, topicId, aiReply),
+  generateTurn: (accountId, topicId, reply) =>
+    ipcRenderer.invoke(IPC.sessionGenerate, accountId, topicId, reply),
   abortTurn: (accountId, topicId) => ipcRenderer.invoke(IPC.sessionAbort, accountId, topicId),
   onTurnDelta: (handler) => {
     const listener = (_event: unknown, delta: TurnDelta): void => handler(delta)

@@ -74,8 +74,10 @@ export function TopicWorkspace() {
   if (!topic) return <Box style={{ padding: '18px 22px 26px' }} />
 
   const streamingPage = streaming && current === pageCount
+  // 第 1 页是开场 + 对方回复；第 k 页是第 k-1 轮的我方发言 + 对方回复。
   const turnIndex = current - 2
   const turn = turnIndex >= 0 && turnIndex < total ? turns[turnIndex] : undefined
+  const openingReply = session?.openingReply
   const archived = topic.status === 'archived'
   const inputPage = !streaming && !archived && current === total + 1
   const activeTopic = topics.find((item) => item.status === 'active')
@@ -162,7 +164,7 @@ export function TopicWorkspace() {
               onEditEn={setEditedEn}
               onRevert={() => setEditedEn(null)}
             />
-            {current < total + 1 && <ReplyCard text={turn.aiReply} />}
+            {turn.reply && <ReplyCard text={turn.reply} />}
             {inputPage && pasteCard}
           </>
         ) : (
@@ -173,6 +175,7 @@ export function TopicWorkspace() {
               zh={topic.openingZh}
               onSave={(en, zh) => void updateTopicOpening(topic.id, en, zh)}
             />
+            {openingReply && <ReplyCard text={openingReply} />}
             {inputPage && pasteCard}
           </>
         )}

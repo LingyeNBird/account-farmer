@@ -99,16 +99,23 @@ export type Feedback = {
 
 export type Turn = {
   index: number
-  aiReply: string
   messageEn: string
   messageZh: string
   feedback?: Feedback
+  /** 对方对我这条发言的回复，用户粘贴后写入。 */
+  reply?: string
   ended: boolean
   endReason?: string
   createdAt: number
 }
 
+/** 会话文件格式版本。1 = 旧结构（turn 里存 aiReply），2 = 我的发言 + 对方回复。 */
+export const SESSION_VERSION = 2
+
 export type Session = {
   topicId: string
+  version: number
+  /** 对方对我方开场白的回复。 */
+  openingReply?: string
   turns: Turn[]
 }
