@@ -1,4 +1,4 @@
-import { ActionIcon, Badge, Box, Button, Group, Stack, Text, Title } from '@mantine/core'
+import { ActionIcon, Box, Button, Group, Stack, Text, Title } from '@mantine/core'
 import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
 import { useAppStore } from '../store'
@@ -97,25 +97,8 @@ export function TopicWorkspace() {
   return (
     <Box pos="relative" style={{ padding: '18px 22px 26px' }}>
       <Stack gap="md">
-        <Group justify="space-between" align="flex-start" wrap="nowrap">
-          <Box>
-            <Group gap={6} wrap="nowrap">
-              <Badge variant="filled" color="dark" radius="sm">
-                主题 {topic.seq}
-              </Badge>
-              {topic.domains.map((domain) => (
-                <Badge key={domain} variant="light" color="gray" radius="sm">
-                  {domain}
-                </Badge>
-              ))}
-              <Badge variant="light" color="gray" radius="sm">
-                第 {current} 轮
-              </Badge>
-            </Group>
-            <Title order={4} mt={6}>
-              {topic.title}
-            </Title>
-          </Box>
+        <Group justify="space-between" align="center" wrap="nowrap">
+          <Title order={4}>{topic.title}</Title>
           <Group gap={4} wrap="nowrap">
             <ActionIcon
               variant="default"
