@@ -11,7 +11,7 @@ import {
   Text,
   Textarea
 } from '@mantine/core'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   DEFAULT_PROMPTS,
   PROMPT_CONDITIONS,
@@ -30,6 +30,19 @@ export function Prompts() {
   const [prompts, setPrompts] = useState<PromptMap | null>(null)
   const [selected, setSelected] = useState<PromptKey>('system')
   const [draft, setDraft] = useState('')
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  const insertAtCursor = (text: string): void => {
+    const element = textareaRef.current
+    const start = element?.selectionStart ?? draft.length
+    const end = element?.selectionEnd ?? draft.length
+    setDraft(`${draft.slice(0, start)}${text}${draft.slice(end)}`)
+    requestAnimationFrame(() => {
+      const caret = start + text.length
+      element?.focus()
+      element?.setSelectionRange(caret, caret)
+    })
+  }
 
   useEffect(() => {
     void api.getPrompts().then((loaded) => {
@@ -118,6 +131,7 @@ export function Prompts() {
                   <ScrollArea h={420} type="auto">
                     <Box p={10}>
                       <Textarea
+                        ref={textareaRef}
                         value={draft}
                         onChange={(event) => setDraft(event.currentTarget.value)}
                         autosize
@@ -142,7 +156,14 @@ export function Prompts() {
                       可用变量
                     </Text>
                     {variables.map((name) => (
-                      <Badge key={name} variant="light" color="gray" radius="sm">
+                      <Badge
+                        key={name}
+                        variant="light"
+                        color="gray"
+                        radius="sm"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => insertAtCursor(`{{${name}}}`)}
+                      >
                         {`{{${name}}}`}
                       </Badge>
                     ))}
@@ -154,7 +175,14 @@ export function Prompts() {
                       固定标记
                     </Text>
                     {tags.map((tag) => (
-                      <Badge key={tag} variant="light" color="indigo" radius="sm">
+                      <Badge
+                        key={tag}
+                        variant="light"
+                        color="indigo"
+                        radius="sm"
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => insertAtCursor(tag)}
+                      >
                         {tag}
                       </Badge>
                     ))}
