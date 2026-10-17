@@ -1,3 +1,4 @@
+import type { PromptKey } from './defaults'
 import type {
   AccountsState,
   AccountSummary,
@@ -11,6 +12,8 @@ import type {
 } from './types'
 
 export type IpcResult<T> = { ok: true; data: T } | { ok: false; code: string; message: string }
+
+export type PromptMap = Record<PromptKey, string>
 
 export const IPC = {
   accountsList: 'accounts:list',
@@ -34,6 +37,9 @@ export const IPC = {
   topicsRefill: 'topics:refill',
   refillState: 'topics:refill-state',
   refillFocus: 'topics:refill-focus',
+  promptsGet: 'prompts:get',
+  promptsSave: 'prompts:save',
+  promptsReset: 'prompts:reset',
   topicsProgress: 'topics:progress',
   sessionGet: 'session:get',
   sessionGenerate: 'session:generate',
@@ -86,6 +92,9 @@ export type Api = {
   refillTopics: (accountId: string) => Promise<IpcResult<void>>
   onRefillState: (handler: (state: RefillState) => void) => () => void
   onRefillFocus: (handler: (payload: RefillFocus) => void) => () => void
+  getPrompts: () => Promise<IpcResult<PromptMap>>
+  savePrompt: (key: PromptKey, text: string) => Promise<IpcResult<PromptMap>>
+  resetPrompt: (key: PromptKey) => Promise<IpcResult<PromptMap>>
   onTopicProgress: (handler: (progress: TopicProgress) => void) => () => void
   getSession: (accountId: string, topicId: string) => Promise<IpcResult<Session>>
   generateTurn: (accountId: string, topicId: string, aiReply: string) => Promise<IpcResult<Turn>>

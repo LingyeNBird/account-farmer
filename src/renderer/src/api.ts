@@ -1,4 +1,5 @@
-import type { IpcResult, RefillFocus, RefillState, TopicProgress, TurnDelta } from '@shared/ipc'
+import type { IpcResult, PromptMap, RefillFocus, RefillState, TopicProgress, TurnDelta } from '@shared/ipc'
+import type { PromptKey } from '@shared/defaults'
 import type {
   AccountsState,
   AccountSummary,
@@ -46,6 +47,10 @@ export const api = {
     window.api.onRefillState(handler),
   onRefillFocus: (handler: (payload: RefillFocus) => void): (() => void) =>
     window.api.onRefillFocus(handler),
+  getPrompts: (): Promise<PromptMap> => unwrap(window.api.getPrompts()),
+  savePrompt: (key: PromptKey, text: string): Promise<PromptMap> =>
+    unwrap(window.api.savePrompt(key, text)),
+  resetPrompt: (key: PromptKey): Promise<PromptMap> => unwrap(window.api.resetPrompt(key)),
   onTopicProgress: (handler: (progress: TopicProgress) => void): (() => void) =>
     window.api.onTopicProgress(handler),
   getSession: (accountId: string, topicId: string): Promise<Session> =>

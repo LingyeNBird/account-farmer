@@ -1,4 +1,5 @@
 import { registerAccountHandlers } from './accounts'
+import { registerPromptHandlers } from './prompts'
 import { registerSessionHandlers } from './session'
 import { registerSettingsHandlers } from './settings'
 import { registerTopicHandlers } from './topics'
@@ -8,4 +9,5 @@ export function registerIpcHandlers(): void {
   registerSettingsHandlers()
   registerTopicHandlers()
   registerSessionHandlers()
+  registerPromptHandlers()
 }

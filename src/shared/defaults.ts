@@ -16,6 +16,26 @@ export const PROMPT_LABELS: Record<PromptKey, string> = {
   termination: '终止判定'
 }
 
+export const PROMPT_SCOPES: Record<PromptKey, 'global' | 'conditional'> = {
+  system: 'global',
+  turn: 'global',
+  topics: 'global',
+  feedbackFallback: 'conditional',
+  termination: 'global'
+}
+
+export const PROMPT_VARIABLES: Record<PromptKey, string[]> = {
+  system: [],
+  turn: [],
+  topics: [],
+  feedbackFallback: ['replies_since_feedback'],
+  termination: []
+}
+
+export const PROMPT_CONDITIONS: Partial<Record<PromptKey, string>> = {
+  feedbackFallback: '连续多轮没有反馈时自动追加'
+}
+
 export const DEFAULT_PROMPTS: Record<PromptKey, string> = {
   system: `你是一名技术讨论教练，帮用户与另一个模型进行高质量的技术对话。
 

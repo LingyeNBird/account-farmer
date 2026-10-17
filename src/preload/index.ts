@@ -35,6 +35,9 @@ const api: Api = {
       ipcRenderer.removeListener(IPC.refillFocus, listener)
     }
   },
+  getPrompts: () => ipcRenderer.invoke(IPC.promptsGet),
+  savePrompt: (key, text) => ipcRenderer.invoke(IPC.promptsSave, key, text),
+  resetPrompt: (key) => ipcRenderer.invoke(IPC.promptsReset, key),
   onTopicProgress: (handler) => {
     const listener = (_event: unknown, progress: TopicProgress): void => handler(progress)
     ipcRenderer.on(IPC.topicsProgress, listener)

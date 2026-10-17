@@ -89,9 +89,11 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
   const prompts = await loadPrompts()
   const repliesSinceFeedback = countRepliesSinceFeedback(session.turns)
   const forceFeedback = repliesSinceFeedback >= settings.feedback.fallbackAfter
-  const systemPrompt = forceFeedback
-    ? `${prompts.system}\n\n${fillFeedbackDirective(prompts.feedbackFallback, repliesSinceFeedback)}`
-    : prompts.system
+  const parts = [prompts.system, prompts.termination]
+  if (forceFeedback) {
+    parts.push(fillFeedbackDirective(prompts.feedbackFallback, repliesSinceFeedback))
+  }
+  const systemPrompt = parts.join('\n\n')
 
   const userMessage = buildUserMessage({
     current: { topic, turns: session.turns },
