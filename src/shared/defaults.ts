@@ -2,7 +2,6 @@ export const PROMPT_KEYS = [
   'system',
   'turn',
   'topics',
-  'feedbackFallback',
   'termination'
 ] as const
 
@@ -12,7 +11,6 @@ export const PROMPT_LABELS: Record<PromptKey, string> = {
   system: '全局系统提示词',
   turn: '回合生成',
   topics: '主题生成',
-  feedbackFallback: '反馈兜底',
   termination: '终止判定'
 }
 
@@ -20,7 +18,6 @@ export const PROMPT_SCOPES: Record<PromptKey, 'global' | 'conditional'> = {
   system: 'global',
   turn: 'global',
   topics: 'global',
-  feedbackFallback: 'conditional',
   termination: 'global'
 }
 
@@ -28,12 +25,7 @@ export const PROMPT_VARIABLES: Record<PromptKey, string[]> = {
   system: [],
   turn: [],
   topics: [],
-  feedbackFallback: ['replies_since_feedback'],
   termination: []
-}
-
-export const PROMPT_CONDITIONS: Partial<Record<PromptKey, string>> = {
-  feedbackFallback: '连续多轮没有反馈时自动追加'
 }
 
 /** 由程序固定解析的标记，改写它们会导致解析失败。 */
@@ -54,14 +46,6 @@ export const PROMPT_TAGS: Record<PromptKey, string[]> = {
   ],
   turn: [],
   topics: ['<<<TOPICS>>>', '<<</TOPICS>>>'],
-  feedbackFallback: [
-    '<<<FB_VERDICT>>>',
-    '<<</FB_VERDICT>>>',
-    '<<<FB_EN>>>',
-    '<<</FB_EN>>>',
-    '<<<FB_ZH>>>',
-    '<<</FB_ZH>>>'
-  ],
   termination: ['<<<END>>>', '<<</END>>>']
 }
 
@@ -87,7 +71,7 @@ export const DEFAULT_PROMPTS: Record<PromptKey, string> = {
 上面的中文对照
 <<</ZH>>>
 
-反馈是对对方这次回答的评价，写给对方背后的模型供应商看——不是写给 AI 本身，也不是给用户的说明。它要相对客观：说清这轮回答为什么好，或者问题具体出在哪。默认不给，只在有明确判断时追加这三个块，三块必须一起出现：
+反馈是对对方这次回答的评价，写给对方背后的模型供应商看——不是写给 AI 本身，也不是给用户的说明。它要相对客观：说清这轮回答为什么好，或者问题具体出在哪。每一轮都要给出这三个块，三块必须一起出现，跟在正文之后：
 <<<FB_VERDICT>>>
 good 或 bad
 <<</FB_VERDICT>>>
@@ -98,9 +82,9 @@ good 或 bad
 一句中文反馈
 <<</FB_ZH>>>
 
-- 这轮回答有明显价值，值得肯定：verdict 给 good。
 - 这轮回答有明显问题——跑题、空转、事实或推理有误：verdict 给 bad。
-- 其余轮次不要输出反馈三块。
+- 没有上面这些问题：verdict 给 good，理由写清它好在哪里。
+- 不要因为觉得「这一轮没什么可评价的」就省略这三块。
 
 判据是「这一轮对高质量对话是否真有贡献」，不是某个固定特征是否出现。反馈只陈述判断，不评价用户，不写建议，也不夸做法。
 
@@ -126,14 +110,13 @@ good 或 bad
 - 主题简报：标题、领域、开场英文
 - 当前主题已完成的轮次，每轮包含对方回复、你上一次的发言、以及可能存在的反馈
 - 本轮对方最新的回复
-- 控制变量：round（第几轮）、replies_since_feedback（连续无反馈轮数）、force_feedback（是否必须给反馈）
+- 控制变量：round（第几轮）
 
-任务：接着这个主题写下去，输出这一轮要发出去的话，并按格式给出中文对照与可选反馈。
+任务：接着这个主题写下去，输出这一轮要发出去的话，并按格式给出中文对照与反馈。
 
 关于反馈：
-- 给反馈，就是在评价对方这一轮的回复质量；不给，只是这一轮没有值得评价的地方，不代表否定。
-- 反馈三块要么全给，要么全不给。
-- force_feedback 为 true 时，本轮必须给出反馈。`,
+- 每一轮都要给出反馈三块，它评价的是对方这一轮的回复质量。
+- 这三块最终会不会发给对方，由程序决定，你不需要考虑。`,
 
   topics: `用户会向另一个 AI 模型发起若干次技术讨论，每次讨论都从一个开场段落开始：用户把这段原样发过去，对方据此回应。这些对话会被对方模型的供应商看到；用户希望他们觉得这些交流有实质内容。
 
@@ -174,9 +157,6 @@ good 或 bad
   }
 ]
 <<</TOPICS>>>`,
-
-  feedbackFallback: `本轮已连续 {{replies_since_feedback}} 轮没有给出反馈，本轮必须输出反馈三块。
-反馈只陈述一件事：当前讨论是在正轨上，还是已经偏离。不评价用户，不写建议。`,
 
   termination: `判断当前对话是否应当结束。
 - 唯一标准：继续回复是否还能维持这次对话的质量。继续只会让它变差，就结束。

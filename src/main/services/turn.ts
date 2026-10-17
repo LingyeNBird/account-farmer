@@ -3,12 +3,13 @@ import type { ReasoningEffort, Turn } from '@shared/types'
 import { ProtocolError, parseTurn, streamingText, type ParsedTurn } from '@shared/protocol'
 import { loadPrompts } from '../store/prompts'
 import { getApiKey } from '../store/secrets'
+import { loadFeedbackCadence, saveFeedbackCadence } from '../store/feedbackState'
 import { appendTurn, loadSession } from '../store/sessions'
 import { loadSettings } from '../store/settings'
 import { archiveTopic, listTopics } from '../store/topics'
 import { createEmitThrottle } from './emitThrottle'
 import { buildModel } from './llm'
-import { countRepliesSinceFeedback } from './feedback'
+import { nextCadence } from './feedback'
 import { composeSystemPrompt } from './systemPrompt'
 import { buildUserMessage } from './turnContext'
 
@@ -101,16 +102,12 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
   }
 
   const prompts = await loadPrompts()
-  const repliesSinceFeedback = countRepliesSinceFeedback(session.turns)
-  const forceFeedback = repliesSinceFeedback >= settings.feedback.fallbackAfter
-  const systemPrompt = composeSystemPrompt(prompts, forceFeedback, repliesSinceFeedback)
+  const systemPrompt = composeSystemPrompt(prompts)
 
   const userMessage = buildUserMessage({
     current: { topic, turns: session.turns },
     aiReply: options.aiReply,
-    round: session.turns.length + 1,
-    repliesSinceFeedback,
-    forceFeedback
+    round: session.turns.length + 1
   })
 
   const run = (extra: string): Promise<string> =>
@@ -148,26 +145,34 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
     }
   }
 
-  const turn: Turn =
-    parsed.kind === 'end'
-      ? {
-          index: session.turns.length + 1,
-          aiReply: options.aiReply,
-          messageEn: '',
-          messageZh: '',
-          ended: true,
-          endReason: parsed.reason,
-          createdAt: Date.now()
-        }
-      : {
-          index: session.turns.length + 1,
-          aiReply: options.aiReply,
-          messageEn: parsed.en,
-          messageZh: parsed.zh,
-          feedback: parsed.feedback,
-          ended: false,
-          createdAt: Date.now()
-        }
+  let turn: Turn
+  if (parsed.kind === 'end') {
+    turn = {
+      index: session.turns.length + 1,
+      aiReply: options.aiReply,
+      messageEn: '',
+      messageZh: '',
+      ended: true,
+      endReason: parsed.reason,
+      createdAt: Date.now()
+    }
+  } else {
+    // 反馈内容由模型每轮固定产出；要不要建议发给对方由这里的随机节奏决定。
+    const cadence = await loadFeedbackCadence(options.accountId)
+    const next = nextCadence(cadence, settings.feedback)
+    await saveFeedbackCadence(options.accountId, next.cadence)
+    turn = {
+      index: session.turns.length + 1,
+      aiReply: options.aiReply,
+      messageEn: parsed.en,
+      messageZh: parsed.zh,
+      feedback: parsed.feedback,
+      suggestFeedback: next.suggest,
+      roundsSinceSuggestion: next.rounds,
+      ended: false,
+      createdAt: Date.now()
+    }
+  }
 
   await appendTurn(options.accountId, options.topicId, turn)
   if (turn.ended) await archiveTopic(options.accountId, options.topicId)

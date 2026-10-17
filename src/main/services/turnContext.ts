@@ -27,8 +27,6 @@ export function buildUserMessage(input: {
   current: ContextTopic
   aiReply: string
   round: number
-  repliesSinceFeedback: number
-  forceFeedback: boolean
 }): string {
   const { current } = input
   const turns = trimTurns(current.turns, Math.floor(MAX_CONTEXT_CHARS * 0.6))
@@ -38,7 +36,7 @@ export function buildUserMessage(input: {
     `# 主题简报\n标题：${current.topic.title}\n领域：${current.topic.domains.join('、')}\n开场英文：${current.topic.openingEn}`,
     history ? `# 本主题已完成的轮次\n${history}` : '',
     `# 本轮对方回复\n${input.aiReply}`,
-    `# 控制变量\nround: ${input.round}\nreplies_since_feedback: ${input.repliesSinceFeedback}\nforce_feedback: ${input.forceFeedback}`
+    `# 控制变量\nround: ${input.round}`
   ]
 
   return sections.filter(Boolean).join('\n\n')

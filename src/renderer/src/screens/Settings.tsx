@@ -256,14 +256,26 @@ function SettingsForm({ initial }: { initial: SettingsValue }) {
                 生成行为
               </Text>
               <NumberInput
-                label="反馈兜底阈值"
-                value={draft.feedback.fallbackAfter}
+                label="反馈间隔 下限"
+                value={draft.feedback.intervalMin}
                 min={1}
-                max={20}
+                max={50}
                 onChange={(value) =>
                   setDraft((current) => ({
                     ...current,
-                    feedback: { fallbackAfter: Number(value) || 4 }
+                    feedback: { ...current.feedback, intervalMin: Number(value) || 2 }
+                  }))
+                }
+              />
+              <NumberInput
+                label="反馈间隔 上限"
+                value={draft.feedback.intervalMax}
+                min={1}
+                max={50}
+                onChange={(value) =>
+                  setDraft((current) => ({
+                    ...current,
+                    feedback: { ...current.feedback, intervalMax: Number(value) || 5 }
                   }))
                 }
               />

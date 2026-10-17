@@ -47,7 +47,7 @@ export type ModelInfo = {
 
 export type Settings = {
   provider: ProviderSettings
-  feedback: { fallbackAfter: number }
+  feedback: { intervalMin: number; intervalMax: number }
   limits: { maxRounds: number }
   notify: { onUnfocused: boolean }
 }
@@ -66,7 +66,7 @@ export const DEFAULT_SETTINGS: Settings = {
       supportsUsageInStreaming: true
     }
   },
-  feedback: { fallbackAfter: 4 },
+  feedback: { intervalMin: 2, intervalMax: 5 },
   limits: { maxRounds: 11 },
   notify: { onUnfocused: true }
 }
@@ -105,6 +105,10 @@ export type Turn = {
   messageEn: string
   messageZh: string
   feedback?: Feedback
+  /** 本轮建议把反馈发给对方；由程序按随机间隔判定，与模型无关。 */
+  suggestFeedback?: boolean
+  /** 距上次建议反馈经过的轮数，仅在不建议时使用。 */
+  roundsSinceSuggestion?: number
   ended: boolean
   endReason?: string
   createdAt: number

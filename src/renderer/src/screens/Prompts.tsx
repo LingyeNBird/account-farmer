@@ -13,7 +13,6 @@ import {
 import { useEffect, useRef, useState } from 'react'
 import {
   DEFAULT_PROMPTS,
-  PROMPT_CONDITIONS,
   PROMPT_KEYS,
   PROMPT_LABELS,
   PROMPT_SCOPES,
@@ -56,7 +55,6 @@ export function Prompts() {
   const scope = PROMPT_SCOPES[selected]
   const variables = PROMPT_VARIABLES[selected]
   const tags = PROMPT_TAGS[selected]
-  const condition = PROMPT_CONDITIONS[selected]
 
   const select = (key: PromptKey): void => {
     setSelected(key)
@@ -120,11 +118,6 @@ export function Prompts() {
                   <Badge variant="light" color="gray" radius="sm">
                     {scope === 'global' ? '全局' : '条件'}
                   </Badge>
-                  {condition && (
-                    <Text size="xs" c="dimmed">
-                      {condition}
-                    </Text>
-                  )}
                 </Group>
                 <Button variant="default" size="compact-sm" disabled={isDefault} onClick={() => void reset()}>
                   恢复默认
