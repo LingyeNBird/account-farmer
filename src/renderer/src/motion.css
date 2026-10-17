@@ -93,6 +93,11 @@
   box-shadow: inset 2px 0 0 var(--mantine-color-indigo-5);
 }
 
+/* 让正文与左侧聚焦竖条之间留出间隙，避免贴字 */
+.editable-field .mantine-Textarea-input {
+  padding-left: 10px;
+}
+
 /* 组件级过渡：覆盖 Mantine 默认的瞬时切换 */
 .mantine-Button-root,
 .mantine-ActionIcon-root {
