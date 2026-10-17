@@ -1,9 +1,10 @@
-import { Title } from '@mantine/core'
+import { Box } from '@mantine/core'
+import { PageHead } from '../components/PageHead'
 
 export function Prompts() {
   return (
-    <div style={{ padding: '18px 22px 26px' }}>
-      <Title order={4}>提示词</Title>
-    </div>
+    <Box style={{ padding: '18px 22px 26px' }}>
+      <PageHead title="提示词" />
+    </Box>
   )
 }

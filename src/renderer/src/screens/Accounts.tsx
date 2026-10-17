@@ -9,13 +9,13 @@ import {
   Stack,
   Table,
   Text,
-  TextInput,
-  Title
+  TextInput
 } from '@mantine/core'
 import { IconPencil, IconTrash } from '@tabler/icons-react'
 import { useState } from 'react'
 import type { AccountSummary } from '@shared/types'
 import { ContentModal } from '../components/ContentModal'
+import { PageHead } from '../components/PageHead'
 import { useAppStore } from '../store'
 
 const formatTime = (value: number): string =>
@@ -66,7 +66,7 @@ export function Accounts() {
   return (
     <Box pos="relative" mih="100%" style={{ padding: '18px 22px 26px' }}>
       <Stack gap="md">
-        <Title order={4}>账号管理</Title>
+        <PageHead title="账号管理" />
 
         <Group gap="xs" align="flex-end">
           <TextInput

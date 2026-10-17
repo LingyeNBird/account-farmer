@@ -10,12 +10,12 @@ import {
   Stack,
   Switch,
   Text,
-  TextInput,
-  Title
+  TextInput
 } from '@mantine/core'
 import { useEffect, useState } from 'react'
 import type { ModelInfo, ProviderInfo, ReasoningEffort, Settings as SettingsValue } from '@shared/types'
 import { api } from '../api'
+import { PageHead } from '../components/PageHead'
 import { useAppStore } from '../store'
 
 const EFFORT_OPTIONS: { value: ReasoningEffort & string; label: string }[] = [
@@ -119,7 +119,7 @@ function SettingsForm({ initial }: { initial: SettingsValue }) {
   return (
     <Box style={{ padding: '18px 22px 26px' }}>
       <Stack gap="lg">
-        <Title order={4}>设置</Title>
+        <PageHead title="设置" />
 
         <Grid gap="xl">
           <Grid.Col span={7}>
