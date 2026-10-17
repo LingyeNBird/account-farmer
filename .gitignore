@@ -16,3 +16,11 @@ scripts/llm-service.mjs
 scripts/experiment.ts
 scripts/.llm-service-port
 scripts/.experiment-*.md
+scripts/.fewshot-examples.md
+scripts/.fewshot-examples.json
+scripts/.fewshot-examples.sha256
+scripts/extract-examples.py
+scripts/.fewshot-formatted.json
+scripts/.fewshot-preview.md
+scripts/check-examples.py
+scripts/format-examples.py

@@ -29,8 +29,8 @@ export function TopicWorkspace() {
   const turns = session?.turns ?? []
   const total = turns.length
   const streaming = turnStreaming !== null
-  const basePages = Math.max(total, 1)
-  const pageCount = basePages + (streaming ? 1 : 0)
+  // 第 1 页固定是主题开场，轮次从第 2 页开始；生成中在末尾多一页。
+  const pageCount = 1 + total + (streaming ? 1 : 0)
   const current = position === null ? pageCount : Math.min(Math.max(position, 1), pageCount)
 
   useEffect(() => {
@@ -74,9 +74,10 @@ export function TopicWorkspace() {
   if (!topic) return <Box style={{ padding: '18px 22px 26px' }} />
 
   const streamingPage = streaming && current === pageCount
-  const turn = current <= total ? turns[current - 1] : undefined
+  const turnIndex = current - 2
+  const turn = turnIndex >= 0 && turnIndex < total ? turns[turnIndex] : undefined
   const archived = topic.status === 'archived'
-  const inputPage = !streamingPage && !archived && (current === total || total === 0)
+  const inputPage = !streaming && !archived && current === total + 1
   const activeTopic = topics.find((item) => item.status === 'active')
   const needsActivation = !archived && topic.status !== 'active' && activeTopic !== undefined
 
@@ -167,7 +168,7 @@ export function TopicWorkspace() {
               onEditEn={setEditedEn}
               onRevert={() => setEditedEn(null)}
             />
-            {current < total && <ReplyCard text={turn.aiReply} />}
+            {current < total + 1 && <ReplyCard text={turn.aiReply} />}
             {inputPage && pasteCard}
           </>
         ) : (
