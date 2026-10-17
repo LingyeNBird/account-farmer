@@ -1,6 +1,6 @@
 import { Badge, Box, Button, Grid, Group, Paper, Text, Textarea } from '@mantine/core'
 import type { ReactNode } from 'react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { IconThumbDown, IconThumbUp } from '@tabler/icons-react'
 import type { Turn } from '@shared/types'
 import { api } from '../api'
@@ -59,15 +59,26 @@ export function OutgoingCard({
 }) {
   const [draftEn, setDraftEn] = useState(en)
   const [draftZh, setDraftZh] = useState(zh)
+  const baseline = useRef({ en, zh })
 
   useEffect(() => {
     setDraftEn(en)
     setDraftZh(zh)
   }, [en, zh])
 
+  const dirty = onSave && (draftEn !== baseline.current.en || draftZh !== baseline.current.zh)
+
   const commit = (): void => {
     if (draftEn === en && draftZh === zh) return
     onSave?.(draftEn, draftZh)
+  }
+
+  const revert = (): void => {
+    setDraftEn(baseline.current.en)
+    setDraftZh(baseline.current.zh)
+    if (en !== baseline.current.en || zh !== baseline.current.zh) {
+      onSave?.(baseline.current.en, baseline.current.zh)
+    }
   }
 
   return (
@@ -77,6 +88,11 @@ export function OutgoingCard({
         title="发给目标 AI"
         right={
           <Group gap={6} wrap="nowrap">
+            {dirty && (
+              <Button size="compact-xs" variant="default" onClick={revert}>
+                复原
+              </Button>
+            )}
             <Badge variant="light" color="gray" radius="sm">
               {words(draftEn)} 词
             </Badge>
@@ -165,17 +181,20 @@ export function ResultCard({
   streamingText,
   editedEn,
   onEditEn,
-  onAbort
+  onAbort,
+  onRevert
 }: {
   turn?: Turn
   streamingText: string | null
   editedEn: string | null
   onEditEn: (value: string) => void
   onAbort?: () => void
+  onRevert?: () => void
 }) {
   const streaming = streamingText !== null
   const en = editedEn ?? turn?.messageEn ?? ''
   const positive = turn?.feedback?.verdict === 'good'
+  const dirty = editedEn !== null && editedEn !== (turn?.messageEn ?? '')
 
   return (
     <Paper withBorder radius="md">
@@ -197,6 +216,10 @@ export function ResultCard({
           streaming && onAbort ? (
             <Button size="compact-sm" variant="default" onClick={onAbort}>
               取消
+            </Button>
+          ) : dirty && onRevert ? (
+            <Button size="compact-sm" variant="default" onClick={onRevert}>
+              复原
             </Button>
           ) : undefined
         }

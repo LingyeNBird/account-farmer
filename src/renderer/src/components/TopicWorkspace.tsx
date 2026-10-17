@@ -145,6 +145,7 @@ export function TopicWorkspace() {
               streamingText={null}
               editedEn={editedEn}
               onEditEn={setEditedEn}
+              onRevert={() => setEditedEn(null)}
             />
             {current < total && <ReplyCard text={turn.aiReply} />}
             {inputPage && pasteCard}
@@ -152,6 +153,7 @@ export function TopicWorkspace() {
         ) : (
           <>
             <OutgoingCard
+              key={topic.id}
               en={topic.openingEn}
               zh={topic.openingZh}
               onSave={(en, zh) => void updateTopicOpening(topic.id, en, zh)}
