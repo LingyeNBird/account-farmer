@@ -62,7 +62,9 @@
 .slide-left { animation: slide-in-left var(--motion-base) var(--motion-ease-out); }
 .bubble-in { animation: bubble-in var(--motion-base) var(--motion-ease-out); }
 .bubble-out { animation: bubble-out var(--motion-quick) var(--motion-ease-in) forwards; }
-.pop-rise { animation: pop-rise 150ms var(--motion-ease-out); }
+.pop-fade { animation: fade-in var(--motion-quick) var(--motion-ease-out); }
+/* 浮层内层才能动 transform：外层由 floating-ui 用 transform 定位 */
+.pop-rise-inner { animation: pop-rise 150ms var(--motion-ease-out); }
 .flash { animation: flash-bg var(--motion-quick) ease-out; }
 .modal-overlay { animation: fade-in 150ms var(--motion-ease-out); }
 .modal-dialog { animation: dialog-in var(--motion-base) var(--motion-ease-out); }

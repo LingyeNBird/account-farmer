@@ -44,9 +44,11 @@ export function TopicQueue() {
   const [page, setPage] = useState(0)
   const [direction, setDirection] = useState(1)
   const [menuPoint, setMenuPoint] = useState<{ x: number; y: number; topic: Topic } | null>(null)
+  const [menuOpen, setMenuOpen] = useState(false)
   const [confirmPoint, setConfirmPoint] = useState<{ x: number; y: number; topic: Topic } | null>(
     null
   )
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   const batches = groupBatches(topics)
   const safePage = Math.min(page, Math.max(batches.length - 1, 0))
@@ -103,6 +105,7 @@ export function TopicQueue() {
                 onContextMenu={(event) => {
                   event.preventDefault()
                   setMenuPoint({ x: event.clientX, y: event.clientY, topic })
+                  requestAnimationFrame(() => setMenuOpen(true))
                 }}
               >
                 <NavLink
@@ -158,8 +161,8 @@ export function TopicQueue() {
         </Box>
       </ScrollArea>
       <Menu
-        opened={menuPoint !== null}
-        onClose={() => setMenuPoint(null)}
+        opened={menuOpen}
+        onClose={() => setMenuOpen(false)}
         position="bottom-start"
         offset={2}
         withinPortal
@@ -176,13 +179,18 @@ export function TopicQueue() {
             }}
           />
         </Menu.Target>
-        <Menu.Dropdown>
+        <Menu.Dropdown
+          style={{ position: 'fixed', left: menuPoint?.x ?? 0, top: menuPoint?.y ?? 0 }}
+        >
           <Menu.Item
             color="red"
             leftSection={<IconTrash size={14} />}
             onClick={() => {
-              if (menuPoint) setConfirmPoint(menuPoint)
-              setMenuPoint(null)
+              if (menuPoint) {
+                setConfirmPoint(menuPoint)
+                requestAnimationFrame(() => setConfirmOpen(true))
+              }
+              setMenuOpen(false)
             }}
           >
             删除主题
@@ -191,8 +199,8 @@ export function TopicQueue() {
       </Menu>
 
       <Popover
-        opened={confirmPoint !== null}
-        onClose={() => setConfirmPoint(null)}
+        opened={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
         position="bottom-start"
         offset={2}
         withinPortal
@@ -210,11 +218,14 @@ export function TopicQueue() {
             }}
           />
         </Popover.Target>
-        <Popover.Dropdown className="pop-rise">
-          <Stack gap={8}>
+        <Popover.Dropdown
+          className="pop-fade"
+          style={{ position: 'fixed', left: confirmPoint?.x ?? 0, top: confirmPoint?.y ?? 0 }}
+        >
+          <Stack gap={8} className="pop-rise-inner">
             <Text size="sm">删除主题 {confirmPoint?.topic.seq}？</Text>
             <Group gap={6} justify="flex-end">
-              <Button size="compact-xs" variant="default" onClick={() => setConfirmPoint(null)}>
+              <Button size="compact-xs" variant="default" onClick={() => setConfirmOpen(false)}>
                 取消
               </Button>
               <Button
@@ -222,7 +233,7 @@ export function TopicQueue() {
                 color="red"
                 onClick={() => {
                   const topic = confirmPoint?.topic
-                  setConfirmPoint(null)
+                  setConfirmOpen(false)
                   if (topic) void deleteTopic(topic.id)
                 }}
               >
