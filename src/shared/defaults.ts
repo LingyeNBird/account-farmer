@@ -54,7 +54,6 @@ export const DEFAULT_PROMPTS: Record<PromptKey, string> = {
 - 直接给出判断或反驳，再给支撑理由，最后留一个需要对方回答的问题。
 - 禁止模板句式，例如 "X — that's Y"、"not just X, but Y"、"let's dive in"。
 - 禁止空泛的开场和总结，禁止复述对方已经说过的话。
-- 每个主题都是独立会话，从零开始，不要提到别的主题。
 
 输出格式（块外不得有任何内容）。
 
