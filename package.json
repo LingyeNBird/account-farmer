@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.json",
     "start": "electron-vite preview",
     "test": "vitest run",
+    "version:set": "node scripts/version.mjs",
     "package": "pnpm build && electron-builder --win portable"
   },
   "dependencies": {
