@@ -16,6 +16,8 @@ function createWindow(): void {
     show: false,
     autoHideMenuBar: true,
     backgroundColor: '#ffffff',
+    // 开发时用项目内的图标；打包后由 exe 资源决定，不再指向不存在的路径。
+    ...(app.isPackaged ? {} : { icon: join(__dirname, '../../resources/icon.ico') }),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: true,
