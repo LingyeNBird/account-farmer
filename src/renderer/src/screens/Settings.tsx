@@ -152,23 +152,25 @@ function SettingsForm({ initial }: { initial: SettingsValue }) {
                 onChange={(event) => patchProvider({ baseUrl: event.currentTarget.value })}
               />
 
-              {isCustom ? (
-                <TextInput
-                  label="模型 ID"
-                  value={provider.modelId}
-                  onChange={(event) => patchProvider({ modelId: event.currentTarget.value })}
-                />
-              ) : (
-                <Select
-                  label="模型"
-                  data={models.map((model) => ({ value: model.id, label: model.name }))}
-                  value={provider.modelId || null}
-                  onChange={(value) => applyModel(models.find((model) => model.id === value))}
-                  searchable
-                  placeholder="未选择"
-                  disabled={!provider.providerId || isCustom}
-                />
-              )}
+              <Box key={provider.providerId} className="fade-in">
+                {isCustom ? (
+                  <TextInput
+                    label="模型 ID"
+                    value={provider.modelId}
+                    onChange={(event) => patchProvider({ modelId: event.currentTarget.value })}
+                  />
+                ) : (
+                  <Select
+                    label="模型"
+                    data={models.map((model) => ({ value: model.id, label: model.name }))}
+                    value={provider.modelId || null}
+                    onChange={(value) => applyModel(models.find((model) => model.id === value))}
+                    searchable
+                    placeholder="未选择"
+                    disabled={!provider.providerId || isCustom}
+                  />
+                )}
+              </Box>
 
               <PasswordInput
                 label="API Key"

@@ -13,9 +13,14 @@ type Props = {
 export function ContentModal({ title, children, confirmLabel, danger, onConfirm, onCancel }: Props) {
   return (
     <Box pos="absolute" inset={0} style={{ zIndex: 300 }}>
-      <Overlay color="#000" backgroundOpacity={0.18} style={{ position: 'absolute', zIndex: 0 }} />
+      <Overlay
+        color="#000"
+        backgroundOpacity={0.18}
+        className="modal-overlay"
+        style={{ position: 'absolute', zIndex: 0 }}
+      />
       <Center pos="absolute" inset={0} p="md" style={{ zIndex: 1 }}>
-        <Paper w={380} p="lg" radius="md" withBorder shadow="md">
+        <Paper w={380} p="lg" radius="md" withBorder shadow="md" className="modal-dialog">
           <Stack gap="sm">
             <Text fw={600}>{title}</Text>
             {children}

@@ -1,0 +1,132 @@
+:root {
+  --motion-fast: 80ms;
+  --motion-quick: 120ms;
+  --motion-base: 180ms;
+  --motion-ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --motion-ease-in: cubic-bezier(0.4, 0, 1, 1);
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes bubble-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes bubble-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes pop-rise {
+  from { opacity: 0; transform: translateY(-2px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes flash-bg {
+  from { background-color: var(--mantine-color-indigo-0); }
+  to { background-color: transparent; }
+}
+
+@keyframes caret-blink {
+  0%, 45% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+@keyframes dialog-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+.fade-in { animation: fade-in var(--motion-quick) var(--motion-ease-out); }
+.rise-in { animation: rise-in var(--motion-base) var(--motion-ease-out); }
+.slide-right { animation: slide-in-right var(--motion-base) var(--motion-ease-out); }
+.slide-left { animation: slide-in-left var(--motion-base) var(--motion-ease-out); }
+.bubble-in { animation: bubble-in var(--motion-base) var(--motion-ease-out); }
+.bubble-out { animation: bubble-out var(--motion-quick) var(--motion-ease-in) forwards; }
+.pop-rise { animation: pop-rise 150ms var(--motion-ease-out); }
+.flash { animation: flash-bg var(--motion-quick) ease-out; }
+.modal-overlay { animation: fade-in 150ms var(--motion-ease-out); }
+.modal-dialog { animation: dialog-in var(--motion-base) var(--motion-ease-out); }
+
+.caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  background: currentColor;
+  vertical-align: text-bottom;
+  animation: caret-blink 1s steps(1) infinite;
+}
+
+.session-switch {
+  animation: fade-in 100ms var(--motion-ease-out);
+}
+
+.editable-field {
+  border-radius: 4px;
+  box-shadow: inset 2px 0 0 transparent;
+  transition: box-shadow var(--motion-quick) var(--motion-ease-out);
+}
+
+.editable-field:focus-within {
+  box-shadow: inset 2px 0 0 var(--mantine-color-indigo-5);
+}
+
+/* 组件级过渡：覆盖 Mantine 默认的瞬时切换 */
+.mantine-Button-root,
+.mantine-ActionIcon-root {
+  transition:
+    background-color var(--motion-quick) ease,
+    color var(--motion-quick) ease,
+    border-color var(--motion-quick) ease,
+    transform var(--motion-fast) ease;
+}
+
+.mantine-NavLink-root {
+  transition:
+    background-color var(--motion-quick) ease,
+    border-color var(--motion-quick) ease,
+    color var(--motion-quick) ease;
+}
+
+.mantine-Badge-root {
+  transition:
+    background-color 200ms ease,
+    color 200ms ease,
+    border-color 200ms ease;
+}
+
+.mantine-Input-input {
+  transition:
+    border-color var(--motion-quick) ease,
+    box-shadow var(--motion-quick) ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}

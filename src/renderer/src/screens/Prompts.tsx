@@ -136,7 +136,11 @@ export function Prompts() {
                 py="sm"
                 style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
               >
-                <Box style={{ flex: 1, minHeight: 0, border: '1px solid #e0e0e5', borderRadius: 8 }}>
+                <Box
+                  key={selected}
+                  className="fade-in"
+                  style={{ flex: 1, minHeight: 0, border: '1px solid #e0e0e5', borderRadius: 8 }}
+                >
                   <ScrollArea style={{ height: '100%' }} type="auto">
                     <Box p={10}>
                       <Textarea

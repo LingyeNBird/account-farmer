@@ -1,4 +1,4 @@
-import { AppShell, Button, Group, Text } from '@mantine/core'
+import { AppShell, Box, Button, Group, Text } from '@mantine/core'
 import { IconFileText, IconSettings, IconUser } from '@tabler/icons-react'
 import { useEffect, useRef } from 'react'
 import { api } from './api'
@@ -143,7 +143,12 @@ export function App() {
               {currentAccountName ?? '无账号'}
             </Button>
             <Group gap={6} px="xs" wrap="nowrap">
-              <Text size="xs" c={provider?.modelId ? undefined : 'dimmed'}>
+              <Text
+                key={provider?.modelId ?? 'none'}
+                className="fade-in"
+                size="xs"
+                c={provider?.modelId ? undefined : 'dimmed'}
+              >
                 {provider?.modelId || '未配置模型'}
               </Text>
               {effort && (
@@ -179,10 +184,12 @@ export function App() {
       </AppShell.Navbar>
 
       <AppShell.Main h="calc(100vh - 48px)" style={{ overflow: 'auto', position: 'relative' }}>
-        {view === 'workbench' && <Workbench />}
-        {view === 'accounts' && <Accounts />}
-        {view === 'prompts' && <Prompts />}
-        {view === 'settings' && <Settings />}
+        <Box key={view} className="fade-in">
+          {view === 'workbench' && <Workbench />}
+          {view === 'accounts' && <Accounts />}
+          {view === 'prompts' && <Prompts />}
+          {view === 'settings' && <Settings />}
+        </Box>
       </AppShell.Main>
     </AppShell>
   )

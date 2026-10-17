@@ -89,7 +89,7 @@ export function OutgoingCard({
         right={
           <Group gap={6} wrap="nowrap">
             {dirty && (
-              <Button size="compact-xs" variant="default" onClick={revert}>
+              <Button size="compact-xs" variant="default" className="fade-in" onClick={revert}>
                 复原
               </Button>
             )}
@@ -124,6 +124,7 @@ export function OutgoingCard({
               minRows={3}
               variant="unstyled"
               p={0}
+              className="editable-field"
               styles={{ input: { fontSize: 14, lineHeight: 1.62 } }}
             />
           ) : (
@@ -143,6 +144,7 @@ export function OutgoingCard({
               minRows={3}
               variant="unstyled"
               p={0}
+              className="editable-field"
               styles={{ input: { fontSize: 14, lineHeight: 1.62, color: 'var(--mantine-color-dimmed)' } }}
             />
           ) : (
@@ -158,7 +160,7 @@ export function OutgoingCard({
 
 export function ReplyCard({ text }: { text: string }) {
   return (
-    <Paper withBorder radius="md">
+    <Paper withBorder radius="md" className="rise-in">
       <CardHeader
         title="AI 回复"
         right={
@@ -197,20 +199,20 @@ export function ResultCard({
   const dirty = editedEn !== null && editedEn !== (turn?.messageEn ?? '')
 
   return (
-    <Paper withBorder radius="md">
+    <Paper withBorder radius="md" className="rise-in">
       <CardHeader
         step={3}
         title="生成结果"
         badge={
-          streaming ? (
-            <Badge variant="light" color="indigo" radius="sm">
-              生成中
-            </Badge>
-          ) : (
-            <Badge variant="light" color="teal" radius="sm">
-              就绪
-            </Badge>
-          )
+          <Badge
+            key={streaming ? 'live' : 'ready'}
+            className="fade-in"
+            variant="light"
+            color={streaming ? 'indigo' : 'teal'}
+            radius="sm"
+          >
+            {streaming ? '生成中' : '就绪'}
+          </Badge>
         }
         right={
           streaming && onAbort ? (
@@ -218,7 +220,7 @@ export function ResultCard({
               取消
             </Button>
           ) : dirty && onRevert ? (
-            <Button size="compact-sm" variant="default" onClick={onRevert}>
+            <Button size="compact-sm" variant="default" className="fade-in" onClick={onRevert}>
               复原
             </Button>
           ) : undefined
@@ -229,6 +231,7 @@ export function ResultCard({
         <Box px="md" py="sm">
           <Text size="sm" c="dimmed" fw={500} style={{ whiteSpace: 'pre-wrap' }}>
             {streamingText}
+            <span className="caret" />
           </Text>
         </Box>
       ) : turn?.ended ? (
@@ -256,6 +259,7 @@ export function ResultCard({
                 minRows={3}
                 variant="unstyled"
                 p={0}
+                className="editable-field"
               />
               <CopyButton text={en} label="复制正文" mt="xs" />
             </Grid.Col>
@@ -268,7 +272,7 @@ export function ResultCard({
           </Grid>
 
           {turn?.feedback && (
-            <Box px="md" pb="md">
+            <Box px="md" pb="md" className="rise-in">
               <Box
                 p="xs"
                 style={{ border: '1px solid #efeff2', borderRadius: 6, cursor: 'pointer' }}
@@ -317,7 +321,7 @@ export function PasteCard({
         step={2}
         title="粘贴回复"
         right={
-          <Text size="xs" c="dimmed">
+          <Text key={value.length} className="flash" size="xs" c="dimmed" px={4} style={{ borderRadius: 4 }}>
             {value.length} 字符
           </Text>
         }

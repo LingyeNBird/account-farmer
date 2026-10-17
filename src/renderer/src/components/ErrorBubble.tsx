@@ -10,12 +10,23 @@ type Props = {
 
 export function ErrorBubble({ message, onDismiss }: Props) {
   const [hovered, setHovered] = useState(false)
+  const [closing, setClosing] = useState(false)
 
   useEffect(() => {
-    if (hovered) return
-    const timer = window.setTimeout(onDismiss, VISIBLE_MS)
+    setClosing(false)
+  }, [message])
+
+  useEffect(() => {
+    if (hovered || closing) return
+    const timer = window.setTimeout(() => setClosing(true), VISIBLE_MS)
     return () => window.clearTimeout(timer)
-  }, [hovered, message, onDismiss])
+  }, [hovered, closing, message])
+
+  useEffect(() => {
+    if (!closing) return
+    const timer = window.setTimeout(onDismiss, 120)
+    return () => window.clearTimeout(timer)
+  }, [closing, onDismiss])
 
   return (
     <Paper
@@ -27,6 +38,7 @@ export function ErrorBubble({ message, onDismiss }: Props) {
       radius="md"
       shadow="sm"
       withBorder
+      className={closing ? 'bubble-out' : 'bubble-in'}
       style={{ zIndex: 400, maxWidth: 420, cursor: 'default' }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}

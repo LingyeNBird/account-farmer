@@ -3,6 +3,7 @@ import {
   Badge,
   Box,
   Button,
+  Collapse,
   Group,
   Loader,
   Menu,
@@ -41,6 +42,7 @@ export function TopicQueue() {
   const refilling = useAppStore((state) => state.refilling)
   const deleteTopic = useAppStore((state) => state.deleteTopic)
   const [page, setPage] = useState(0)
+  const [direction, setDirection] = useState(1)
   const [menuPoint, setMenuPoint] = useState<{ x: number; y: number; topic: Topic } | null>(null)
   const [confirmPoint, setConfirmPoint] = useState<{ x: number; y: number; topic: Topic } | null>(
     null
@@ -52,14 +54,14 @@ export function TopicQueue() {
 
   return (
     <Stack gap={0} h="100%">
-      {refilling && (
+      <Collapse expanded={refilling} transitionDuration={120}>
         <Group gap={6} px="sm" py={6} style={{ borderBottom: '1px solid #e6e6ea', background: '#fdf7ec' }}>
           <Loader size={11} color="gray" />
           <Text size="xs" c="dimmed">
             生成中
           </Text>
         </Group>
-      )}
+      </Collapse>
       {batches.length > 0 && (
         <Group justify="center" gap="xs" p={6} style={{ borderBottom: '1px solid #e6e6ea' }}>
           <ActionIcon
@@ -67,7 +69,10 @@ export function TopicQueue() {
             size="sm"
             aria-label="上一批"
             disabled={safePage === 0}
-            onClick={() => setPage(safePage - 1)}
+            onClick={() => {
+              setDirection(-1)
+              setPage(safePage - 1)
+            }}
           >
             <IconChevronLeft size={14} />
           </ActionIcon>
@@ -79,7 +84,10 @@ export function TopicQueue() {
             size="sm"
             aria-label="下一批"
             disabled={safePage >= batches.length - 1}
-            onClick={() => setPage(safePage + 1)}
+            onClick={() => {
+              setDirection(1)
+              setPage(safePage + 1)
+            }}
           >
             <IconChevronRight size={14} />
           </ActionIcon>
@@ -87,7 +95,7 @@ export function TopicQueue() {
       )}
 
       <ScrollArea style={{ flex: 1 }}>
-        <Box p={6}>
+        <Box p={6} key={safePage} className={direction === 1 ? 'slide-right' : 'slide-left'}>
           <Stack gap={2}>
             {visible.map((topic) => (
               <div
@@ -202,7 +210,7 @@ export function TopicQueue() {
             }}
           />
         </Popover.Target>
-        <Popover.Dropdown>
+        <Popover.Dropdown className="pop-rise">
           <Stack gap={8}>
             <Text size="sm">删除主题 {confirmPoint?.topic.seq}？</Text>
             <Group gap={6} justify="flex-end">

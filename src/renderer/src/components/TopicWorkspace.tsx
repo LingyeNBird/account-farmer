@@ -1,6 +1,6 @@
 import { ActionIcon, Box, Button, Group, Stack, Text, Title } from '@mantine/core'
 import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAppStore } from '../store'
 import { ContentModal } from './ContentModal'
 import { ErrorBubble } from './ErrorBubble'
@@ -51,6 +51,26 @@ export function TopicWorkspace() {
     if (streaming) setPosition(null)
   }, [streaming])
 
+  const [contentAnim, setContentAnim] = useState('')
+  const lastView = useRef<{ topicId: string; index: number } | null>(null)
+  useEffect(() => {
+    const next = { topicId: topic?.id ?? '', index: current }
+    const last = lastView.current
+    lastView.current = next
+    if (!last) return
+    if (last.topicId !== next.topicId) {
+      setContentAnim('fade-in')
+    } else if (last.index !== next.index) {
+      if (position === null) {
+        setContentAnim('fade-in')
+      } else {
+        setContentAnim(next.index > last.index ? 'slide-right' : 'slide-left')
+      }
+    } else {
+      setContentAnim('')
+    }
+  }, [topic?.id, current, position])
+
   if (!topic) return <Box style={{ padding: '18px 22px 26px' }} />
 
   const streamingPage = streaming && current === pageCount
@@ -97,7 +117,7 @@ export function TopicWorkspace() {
 
   return (
     <Box pos="relative" style={{ padding: '18px 22px 26px' }}>
-      <Stack gap="md">
+      <Stack gap="md" key={`${topic.id}-${current}`} className={contentAnim}>
         <Group justify="space-between" align="center" wrap="nowrap">
           <Title order={4}>{topic.title}</Title>
           <Group gap={4} wrap="nowrap">
