@@ -29,6 +29,8 @@ export const IPC = {
   topicsList: 'topics:list',
   topicsGenerate: 'topics:generate',
   topicsCancel: 'topics:cancel',
+  topicsArchive: 'topics:archive',
+  topicsActivate: 'topics:activate',
   topicsProgress: 'topics:progress',
   sessionGet: 'session:get',
   sessionGenerate: 'session:generate',
@@ -67,6 +69,8 @@ export type Api = {
   listTopics: (accountId: string) => Promise<IpcResult<Topic[]>>
   generateTopics: (accountId: string) => Promise<IpcResult<Topic[]>>
   cancelTopicGeneration: (accountId: string) => Promise<IpcResult<void>>
+  archiveTopic: (accountId: string, topicId: string) => Promise<IpcResult<Topic[]>>
+  activateTopic: (accountId: string, topicId: string) => Promise<IpcResult<Topic[]>>
   onTopicProgress: (handler: (progress: TopicProgress) => void) => () => void
   getSession: (accountId: string, topicId: string) => Promise<IpcResult<Session>>
   generateTurn: (accountId: string, topicId: string, aiReply: string) => Promise<IpcResult<Turn>>

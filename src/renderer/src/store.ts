@@ -29,6 +29,8 @@ type AppState = {
   selectTopic: (id: string) => Promise<void>
   setTurnStreaming: (text: string | null) => void
   generateTurn: (aiReply: string) => Promise<void>
+  endTopic: () => Promise<void>
+  activateTopic: (topicId: string) => Promise<void>
   abortTurn: () => Promise<void>
   generateTopics: () => Promise<void>
   cancelTopicGeneration: () => Promise<void>
@@ -142,12 +144,39 @@ export const useAppStore = create<AppState>((set, get) => ({
           ? { ...session, turns: [...session.turns, turn] }
           : { topicId, turns: [turn] }
       })
+      if (turn.ended) {
+        const topics = await api.listTopics(accountId)
+        const next = topics.find((topic) => topic.status === 'active') ?? topics[0]
+        set({ topics, selectedTopicId: next?.id ?? null, session: null })
+        if (next) await get().selectTopic(next.id)
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       if (message !== '已取消') set({ error: message })
     } finally {
       set({ turnLoading: false, turnStreaming: null })
     }
+  },
+
+  endTopic: async () => {
+    const accountId = get().currentAccountId
+    const topicId = get().selectedTopicId
+    if (!accountId || !topicId) return
+    await guard(async () => {
+      const topics = await api.archiveTopic(accountId, topicId)
+      const next = topics.find((topic) => topic.status === 'active') ?? topics[0]
+      set({ topics, selectedTopicId: next?.id ?? null, session: null })
+      if (next) await get().selectTopic(next.id)
+    }, (message) => set({ error: message }))
+  },
+
+  activateTopic: async (topicId) => {
+    const accountId = get().currentAccountId
+    if (!accountId) return
+    await guard(
+      async () => set({ topics: await api.activateTopic(accountId, topicId) }),
+      (message) => set({ error: message })
+    )
   },
 
   abortTurn: async () => {

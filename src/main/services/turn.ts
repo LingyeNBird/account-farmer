@@ -5,7 +5,7 @@ import { loadPrompts } from '../store/prompts'
 import { getApiKey } from '../store/secrets'
 import { appendTurn, loadSession } from '../store/sessions'
 import { loadSettings } from '../store/settings'
-import { listTopics } from '../store/topics'
+import { archiveTopic, listTopics } from '../store/topics'
 import { buildModel } from './llm'
 import { countRepliesSinceFeedback, fillFeedbackDirective } from './feedback'
 import { buildUserMessage, type ContextTopic } from './turnContext'
@@ -157,5 +157,6 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
         }
 
   await appendTurn(options.accountId, options.topicId, turn)
+  if (turn.ended) await archiveTopic(options.accountId, options.topicId)
   return turn
 }

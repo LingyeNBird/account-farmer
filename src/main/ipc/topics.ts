@@ -3,7 +3,7 @@ import { buildModel } from '../services/llm'
 import { generateTopics } from '../services/topicBatch'
 import { getApiKey } from '../store/secrets'
 import { loadSettings } from '../store/settings'
-import { appendTopics, listTopics } from '../store/topics'
+import { appendTopics, archiveTopic, activateTopic, listTopics } from '../store/topics'
 import { broadcast } from './broadcast'
 import { handle } from './handle'
 
@@ -53,4 +53,7 @@ export function registerTopicHandlers(): void {
   handle(IPC.topicsCancel, async (accountId: string) => {
     controllers.get(accountId)?.abort()
   })
+
+  handle(IPC.topicsArchive, (accountId: string, topicId: string) => archiveTopic(accountId, topicId))
+  handle(IPC.topicsActivate, (accountId: string, topicId: string) => activateTopic(accountId, topicId))
 }

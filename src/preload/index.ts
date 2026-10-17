@@ -18,6 +18,8 @@ const api: Api = {
   listTopics: (accountId) => ipcRenderer.invoke(IPC.topicsList, accountId),
   generateTopics: (accountId) => ipcRenderer.invoke(IPC.topicsGenerate, accountId),
   cancelTopicGeneration: (accountId) => ipcRenderer.invoke(IPC.topicsCancel, accountId),
+  archiveTopic: (accountId, topicId) => ipcRenderer.invoke(IPC.topicsArchive, accountId, topicId),
+  activateTopic: (accountId, topicId) => ipcRenderer.invoke(IPC.topicsActivate, accountId, topicId),
   onTopicProgress: (handler) => {
     const listener = (_event: unknown, progress: TopicProgress): void => handler(progress)
     ipcRenderer.on(IPC.topicsProgress, listener)

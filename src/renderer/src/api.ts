@@ -37,6 +37,10 @@ export const api = {
   generateTopics: (accountId: string): Promise<Topic[]> => unwrap(window.api.generateTopics(accountId)),
   cancelTopicGeneration: (accountId: string): Promise<void> =>
     unwrap(window.api.cancelTopicGeneration(accountId)),
+  archiveTopic: (accountId: string, topicId: string): Promise<Topic[]> =>
+    unwrap(window.api.archiveTopic(accountId, topicId)),
+  activateTopic: (accountId: string, topicId: string): Promise<Topic[]> =>
+    unwrap(window.api.activateTopic(accountId, topicId)),
   onTopicProgress: (handler: (progress: TopicProgress) => void): (() => void) =>
     window.api.onTopicProgress(handler),
   getSession: (accountId: string, topicId: string): Promise<Session> =>

@@ -1,7 +1,8 @@
-import { ActionIcon, Badge, Box, Group, Stack, Text, Title } from '@mantine/core'
+import { ActionIcon, Badge, Box, Button, Group, Stack, Text, Title } from '@mantine/core'
 import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
 import { useAppStore } from '../store'
+import { ContentModal } from './ContentModal'
 import { ErrorBubble } from './ErrorBubble'
 import { OutgoingCard, PasteCard, ReplyCard, ResultCard } from './TurnCards'
 
@@ -15,10 +16,13 @@ export function TopicWorkspace() {
   const clearError = useAppStore((state) => state.clearError)
   const generateTurn = useAppStore((state) => state.generateTurn)
   const abortTurn = useAppStore((state) => state.abortTurn)
+  const endTopic = useAppStore((state) => state.endTopic)
+  const activateTopic = useAppStore((state) => state.activateTopic)
 
   const [paste, setPaste] = useState('')
   const [position, setPosition] = useState<number | null>(null)
   const [editedEn, setEditedEn] = useState<string | null>(null)
+  const [switchPrompt, setSwitchPrompt] = useState<string | null>(null)
 
   const topic = topics.find((item) => item.id === selectedTopicId)
   const turns = session?.turns ?? []
@@ -50,7 +54,10 @@ export function TopicWorkspace() {
 
   const streamingPage = streaming && current === pageCount
   const turn = current <= total ? turns[current - 1] : undefined
-  const inputPage = !streamingPage && (current === total || total === 0)
+  const archived = topic.status === 'archived'
+  const inputPage = !streamingPage && !archived && (current === total || total === 0)
+  const activeTopic = topics.find((item) => item.status === 'active')
+  const needsActivation = !archived && topic.status !== 'active' && activeTopic !== undefined
 
   let repliesSinceFeedback = 0
   for (let cursor = turns.length - 1; cursor >= 0; cursor -= 1) {
@@ -60,7 +67,19 @@ export function TopicWorkspace() {
 
   const submit = async (): Promise<void> => {
     if (!paste.trim() || turnLoading) return
+    if (needsActivation) {
+      setSwitchPrompt(paste)
+      return
+    }
     await generateTurn(paste)
+  }
+
+  const confirmSwitch = async (): Promise<void> => {
+    if (!switchPrompt) return
+    const reply = switchPrompt
+    setSwitchPrompt(null)
+    await activateTopic(topic.id)
+    await generateTurn(reply)
   }
 
   const pasteCard = (
@@ -119,6 +138,11 @@ export function TopicWorkspace() {
             >
               <IconChevronRight size={14} />
             </ActionIcon>
+            {topic.status === 'active' && (
+              <Button variant="default" size="compact-sm" ml="xs" onClick={() => void endTopic()}>
+                手动结束主题
+              </Button>
+            )}
           </Group>
         </Group>
 
@@ -150,6 +174,19 @@ export function TopicWorkspace() {
       </Stack>
 
       {error && <ErrorBubble message={error} onDismiss={clearError} />}
+
+      {switchPrompt !== null && activeTopic && (
+        <ContentModal
+          title={`主题 ${activeTopic.seq} 未完成`}
+          confirmLabel="继续"
+          onConfirm={() => void confirmSwitch()}
+          onCancel={() => setSwitchPrompt(null)}
+        >
+          <Text size="sm" c="dimmed">
+            继续发送会把主题 {activeTopic.seq} 归档。
+          </Text>
+        </ContentModal>
+      )}
     </Box>
   )
 }
