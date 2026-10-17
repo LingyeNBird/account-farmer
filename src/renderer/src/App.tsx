@@ -121,9 +121,16 @@ export function App() {
     >
       <AppShell.Header>
         <Group h="100%" px="md" justify="space-between" wrap="nowrap">
-          <Text size="sm" fw={600}>
+          <Button
+            variant="subtle"
+            color="dark"
+            size="compact-sm"
+            fw={600}
+            px={6}
+            onClick={() => setView('workbench')}
+          >
             AI 养号工作台
-          </Text>
+          </Button>
           <Group gap={4} wrap="nowrap">
             <Button
               variant="subtle"
