@@ -25,6 +25,11 @@ jobs:
       - name: 校验版本号
         run: node scripts/version.mjs --check ${{ inputs.version }}
 
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.13.1
+
       - name: 打标签
         shell: bash
         env:
