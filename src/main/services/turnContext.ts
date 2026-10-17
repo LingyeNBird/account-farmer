@@ -11,13 +11,7 @@ function formatTurn(turn: Turn): string {
   return lines.join('\n')
 }
 
-function formatTopic(topic: Topic, turns: Turn[]): string {
-  const head = `## 主题 ${topic.seq}：${topic.title}\n领域：${topic.domains.join('、')}`
-  if (turns.length === 0) return head
-  return `${head}\n${turns.map(formatTurn).join('\n\n')}`
-}
-
-/** 超出预算时从最旧的轮次开始丢，当前主题至少保留最近两轮。 */
+/** 超出预算时从最旧的轮次开始丢，至少保留最近两轮。 */
 function trimTurns(turns: Turn[], budget: number): Turn[] {
   const kept = [...turns]
   let size = kept.reduce((total, turn) => total + formatTurn(turn).length, 0)
@@ -31,32 +25,18 @@ function trimTurns(turns: Turn[], budget: number): Turn[] {
 
 export function buildUserMessage(input: {
   current: ContextTopic
-  recent: ContextTopic[]
   aiReply: string
   round: number
   repliesSinceFeedback: number
   forceFeedback: boolean
 }): string {
-  const { current, recent } = input
-  let budget = Math.floor(MAX_CONTEXT_CHARS * 0.6)
-
-  const recentBlocks: string[] = []
-  for (const entry of recent) {
-    const block = formatTopic(entry.topic, entry.turns)
-    if (block.length > budget) break
-    recentBlocks.push(block)
-    budget -= block.length
-  }
-
-  const currentTurns = trimTurns(current.turns, budget)
-  const currentBlock = formatTopic(current.topic, currentTurns)
+  const { current } = input
+  const turns = trimTurns(current.turns, Math.floor(MAX_CONTEXT_CHARS * 0.6))
+  const history = turns.map(formatTurn).join('\n\n')
 
   const sections = [
     `# 主题简报\n标题：${current.topic.title}\n领域：${current.topic.domains.join('、')}\n开场英文：${current.topic.openingEn}`,
-    recentBlocks.length > 0
-      ? `# 早先主题（仅供避免重复，不要在本主题中提起）\n${recentBlocks.join('\n\n')}`
-      : '',
-    currentBlock,
+    history ? `# 本主题已完成的轮次\n${history}` : '',
     `# 本轮对方回复\n${input.aiReply}`,
     `# 控制变量\nround: ${input.round}\nreplies_since_feedback: ${input.repliesSinceFeedback}\nforce_feedback: ${input.forceFeedback}`
   ]

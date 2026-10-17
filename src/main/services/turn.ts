@@ -8,7 +8,7 @@ import { loadSettings } from '../store/settings'
 import { archiveTopic, listTopics } from '../store/topics'
 import { buildModel } from './llm'
 import { countRepliesSinceFeedback, fillFeedbackDirective } from './feedback'
-import { buildUserMessage, type ContextTopic } from './turnContext'
+import { buildUserMessage } from './turnContext'
 
 const loadPiAi = () => import('@mariozechner/pi-ai')
 
@@ -74,17 +74,6 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
   if (!topic) throw new Error('主题不存在')
 
   const session = await loadSession(options.accountId, options.topicId)
-  const recentTopics = topics
-    .filter((item) => item.seq < topic.seq)
-    .sort((a, b) => b.seq - a.seq)
-    .slice(0, settings.context.keepTopics)
-
-  const recent: ContextTopic[] = await Promise.all(
-    recentTopics.map(async (item) => ({
-      topic: item,
-      turns: (await loadSession(options.accountId, item.id)).turns
-    }))
-  )
 
   const prompts = await loadPrompts()
   const repliesSinceFeedback = countRepliesSinceFeedback(session.turns)
@@ -97,7 +86,6 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
 
   const userMessage = buildUserMessage({
     current: { topic, turns: session.turns },
-    recent,
     aiReply: options.aiReply,
     round: session.turns.length + 1,
     repliesSinceFeedback,
@@ -146,6 +134,7 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
           messageEn: '',
           messageZh: '',
           ended: true,
+          endReason: parsed.reason,
           createdAt: Date.now()
         }
       : {

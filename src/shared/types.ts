@@ -48,7 +48,6 @@ export type ModelInfo = {
 export type Settings = {
   provider: ProviderSettings
   feedback: { fallbackAfter: number }
-  context: { keepTopics: number }
   notify: { onUnfocused: boolean }
 }
 
@@ -67,7 +66,6 @@ export const DEFAULT_SETTINGS: Settings = {
     }
   },
   feedback: { fallbackAfter: 4 },
-  context: { keepTopics: 3 },
   notify: { onUnfocused: true }
 }
 
@@ -106,6 +104,7 @@ export type Turn = {
   messageZh: string
   feedback?: Feedback
   ended: boolean
+  endReason?: string
   createdAt: number
 }
 

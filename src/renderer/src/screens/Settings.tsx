@@ -267,18 +267,6 @@ function SettingsForm({ initial }: { initial: SettingsValue }) {
                   }))
                 }
               />
-              <NumberInput
-                label="保留主题数"
-                value={draft.context.keepTopics}
-                min={1}
-                max={20}
-                onChange={(value) =>
-                  setDraft((current) => ({
-                    ...current,
-                    context: { keepTopics: Number(value) || 3 }
-                  }))
-                }
-              />
 
               <Divider my="xs" />
               <Text size="sm" fw={600}>

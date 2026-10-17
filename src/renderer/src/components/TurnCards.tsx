@@ -239,6 +239,11 @@ export function ResultCard({
           <Text size="sm" c="dimmed">
             本轮判定结束
           </Text>
+          {turn.endReason && (
+            <Text size="xs" c="dimmed" mt={4}>
+              {turn.endReason}
+            </Text>
+          )}
         </Box>
       ) : (
         <>
