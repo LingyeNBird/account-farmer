@@ -58,18 +58,21 @@ export function App() {
     () =>
       api.onTurnDelta((delta) => {
         const state = useAppStore.getState()
-        if (delta.accountId === state.currentAccountId && delta.topicId === state.selectedTopicId) {
-          state.setTurnStreaming(delta.text)
-        }
+        if (!state.turnLoading) return
+        if (delta.accountId !== state.currentAccountId) return
+        if (delta.topicId !== state.selectedTopicId) return
+        state.setTurnStreaming(delta.text)
       }),
     []
   )
 
   const attempted = useRef<string | null>(null)
   const configured = isConfigured(settings, hasKey)
+
   useEffect(() => {
     attempted.current = null
   }, [currentAccountId])
+
   useEffect(() => {
     if (!currentAccountId || !configured || generating) return
     if (topicsLoadedFor !== currentAccountId) return

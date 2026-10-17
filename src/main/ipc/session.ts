@@ -27,6 +27,9 @@ export function registerSessionHandlers(): void {
         signal: controller.signal,
         onDelta: (text) => broadcast(IPC.sessionDelta, { accountId, topicId, text })
       })
+    } catch (error) {
+      if (controller.signal.aborted) throw new Error('已取消')
+      throw error
     } finally {
       controllers.delete(key)
     }

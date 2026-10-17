@@ -57,6 +57,7 @@ async function streamOnce(options: RunOptions): Promise<string> {
   }
 
   const final = await events.result()
+  if (final.stopReason === 'aborted') throw new Error('已取消')
   if (final.stopReason === 'error') throw new Error(final.errorMessage ?? '生成失败')
   return raw
 }

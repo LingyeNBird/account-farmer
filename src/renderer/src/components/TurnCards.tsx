@@ -215,19 +215,19 @@ export function ResultCard({
 export function PasteCard({
   value,
   onChange,
-  disabled,
   canSubmit,
+  generating,
   repliesSinceFeedback,
   onSubmit,
-  hideAction
+  onAbort
 }: {
   value: string
   onChange: (value: string) => void
-  disabled: boolean
   canSubmit: boolean
+  generating: boolean
   repliesSinceFeedback: number
   onSubmit: () => void
-  hideAction?: boolean
+  onAbort: () => void
 }) {
   return (
     <Paper withBorder radius="md">
@@ -244,7 +244,6 @@ export function PasteCard({
         <Textarea
           value={value}
           onChange={(event) => onChange(event.currentTarget.value)}
-          disabled={disabled}
           autosize={false}
           minRows={2}
           maxRows={2}
@@ -258,7 +257,16 @@ export function PasteCard({
           </Text>
         )}
         <Box style={{ flex: 1 }} />
-        {!hideAction && (
+        {generating ? (
+          <Group gap="xs" wrap="nowrap">
+            <Button size="compact-sm" disabled>
+              正在生成中
+            </Button>
+            <Button size="compact-sm" variant="default" onClick={onAbort}>
+              取消
+            </Button>
+          </Group>
+        ) : (
           <Button size="compact-sm" disabled={!canSubmit} onClick={onSubmit}>
             生成下一段
           </Button>

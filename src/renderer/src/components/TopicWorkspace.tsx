@@ -1,7 +1,8 @@
-import { ActionIcon, Alert, Badge, Box, Group, Stack, Text, Title } from '@mantine/core'
+import { ActionIcon, Badge, Box, Group, Stack, Text, Title } from '@mantine/core'
 import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
 import { useAppStore } from '../store'
+import { ErrorBubble } from './ErrorBubble'
 import { OutgoingCard, PasteCard, ReplyCard, ResultCard } from './TurnCards'
 
 export function TopicWorkspace() {
@@ -22,24 +23,34 @@ export function TopicWorkspace() {
   const topic = topics.find((item) => item.id === selectedTopicId)
   const turns = session?.turns ?? []
   const total = turns.length
-  const index = position === null ? Math.max(total, 1) : Math.min(position, Math.max(total, 1))
-  const turn = total > 0 ? turns[index - 1] : undefined
   const streaming = turnStreaming !== null
+  const basePages = Math.max(total, 1)
+  const pageCount = basePages + (streaming ? 1 : 0)
+  const current = position === null ? pageCount : Math.min(Math.max(position, 1), pageCount)
 
   useEffect(() => {
     setPosition(null)
     setPaste('')
+    setEditedEn(null)
   }, [selectedTopicId])
 
   useEffect(() => {
     setEditedEn(null)
-  }, [index, total])
+  }, [current, total])
+
+  useEffect(() => {
+    setPaste('')
+  }, [total])
+
+  useEffect(() => {
+    if (streaming) setPosition(null)
+  }, [streaming])
 
   if (!topic) return <Box style={{ padding: '18px 22px 26px' }} />
 
-  const isLatest = index === total || total === 0
-  const outgoingEn = turn?.messageEn || topic.openingEn
-  const outgoingZh = turn?.messageZh || topic.openingZh
+  const streamingPage = streaming && current === pageCount
+  const turn = current <= total ? turns[current - 1] : undefined
+  const inputPage = !streamingPage && (current === total || total === 0)
 
   let repliesSinceFeedback = 0
   for (let cursor = turns.length - 1; cursor >= 0; cursor -= 1) {
@@ -50,11 +61,22 @@ export function TopicWorkspace() {
   const submit = async (): Promise<void> => {
     if (!paste.trim() || turnLoading) return
     await generateTurn(paste)
-    if (!useAppStore.getState().error) setPaste('')
   }
 
+  const pasteCard = (
+    <PasteCard
+      value={paste}
+      onChange={setPaste}
+      canSubmit={Boolean(paste.trim()) && !turnLoading}
+      generating={streaming}
+      repliesSinceFeedback={repliesSinceFeedback}
+      onSubmit={() => void submit()}
+      onAbort={() => void abortTurn()}
+    />
+  )
+
   return (
-    <Box style={{ padding: '18px 22px 26px' }}>
+    <Box pos="relative" style={{ padding: '18px 22px 26px' }}>
       <Stack gap="md">
         <Group justify="space-between" align="flex-start" wrap="nowrap">
           <Box>
@@ -68,7 +90,7 @@ export function TopicWorkspace() {
                 </Badge>
               ))}
               <Badge variant="light" color="gray" radius="sm">
-                第 {index} 轮
+                第 {current} 轮
               </Badge>
             </Group>
             <Title order={4} mt={6}>
@@ -80,82 +102,54 @@ export function TopicWorkspace() {
               variant="default"
               size="sm"
               aria-label="上一轮"
-              disabled={index <= 1}
-              onClick={() => setPosition(index - 1)}
+              disabled={current <= 1}
+              onClick={() => setPosition(current - 1)}
             >
               <IconChevronLeft size={14} />
             </ActionIcon>
             <Text size="xs" c="dimmed">
-              {index} / {Math.max(total, 1)}
+              {current} / {pageCount}
             </Text>
             <ActionIcon
               variant="default"
               size="sm"
               aria-label="下一轮"
-              disabled={index >= Math.max(total, 1)}
-              onClick={() => setPosition(index + 1)}
+              disabled={current >= pageCount}
+              onClick={() => setPosition(current + 1)}
             >
               <IconChevronRight size={14} />
             </ActionIcon>
           </Group>
         </Group>
 
-        {error && (
-          <Alert color="red" variant="light" withCloseButton onClose={clearError}>
-            {error}
-          </Alert>
-        )}
-
-        {streaming ? (
+        {streamingPage ? (
+          <ResultCard
+            turn={undefined}
+            streamingText={turnStreaming}
+            editedEn={editedEn}
+            onEditEn={setEditedEn}
+            onAbort={() => void abortTurn()}
+          />
+        ) : turn ? (
           <>
-            <OutgoingCard en={outgoingEn} zh={outgoingZh} />
-            {isLatest && (
-              <PasteCard
-                value={paste}
-                onChange={setPaste}
-                disabled
-                canSubmit={false}
-                hideAction
-                repliesSinceFeedback={repliesSinceFeedback}
-                onSubmit={() => void submit()}
-              />
-            )}
             <ResultCard
-              turn={undefined}
-              streamingText={turnStreaming}
+              turn={turn}
+              streamingText={null}
               editedEn={editedEn}
               onEditEn={setEditedEn}
-              onAbort={() => void abortTurn()}
             />
+            {current < total && <ReplyCard text={turn.aiReply} />}
+            {inputPage && pasteCard}
           </>
         ) : (
           <>
-            {turn ? (
-              <>
-                <ResultCard
-                  turn={turn}
-                  streamingText={null}
-                  editedEn={editedEn}
-                  onEditEn={setEditedEn}
-                />
-                <ReplyCard text={turn.aiReply} />
-              </>
-            ) : (
-              <OutgoingCard en={outgoingEn} zh={outgoingZh} />
-            )}
-            {isLatest && (
-              <PasteCard
-                value={paste}
-                onChange={setPaste}
-                disabled={turnLoading}
-                canSubmit={Boolean(paste.trim()) && !turnLoading}
-                repliesSinceFeedback={repliesSinceFeedback}
-                onSubmit={() => void submit()}
-              />
-            )}
+            <OutgoingCard en={topic.openingEn} zh={topic.openingZh} />
+            {pasteCard}
           </>
         )}
       </Stack>
+
+      {error && <ErrorBubble message={error} onDismiss={clearError} />}
     </Box>
   )
 }
