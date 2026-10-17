@@ -7,7 +7,8 @@ import { appendTurn, loadSession } from '../store/sessions'
 import { loadSettings } from '../store/settings'
 import { archiveTopic, listTopics } from '../store/topics'
 import { buildModel } from './llm'
-import { countRepliesSinceFeedback, fillFeedbackDirective } from './feedback'
+import { countRepliesSinceFeedback } from './feedback'
+import { composeSystemPrompt } from './systemPrompt'
 import { buildUserMessage } from './turnContext'
 
 const loadPiAi = () => import('@mariozechner/pi-ai')
@@ -78,11 +79,7 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
   const prompts = await loadPrompts()
   const repliesSinceFeedback = countRepliesSinceFeedback(session.turns)
   const forceFeedback = repliesSinceFeedback >= settings.feedback.fallbackAfter
-  const parts = [prompts.system, prompts.termination]
-  if (forceFeedback) {
-    parts.push(fillFeedbackDirective(prompts.feedbackFallback, repliesSinceFeedback))
-  }
-  const systemPrompt = parts.join('\n\n')
+  const systemPrompt = composeSystemPrompt(prompts, forceFeedback, repliesSinceFeedback)
 
   const userMessage = buildUserMessage({
     current: { topic, turns: session.turns },
