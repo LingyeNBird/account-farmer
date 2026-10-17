@@ -66,7 +66,7 @@ export function TopicQueue() {
                 active={topic.status === 'active'}
                 color={topic.status === 'archived' ? 'teal' : 'indigo'}
                 label={
-                  <Text size="sm" fw={500} lineClamp={1}>
+                  <Text fz={15} fw={500} lineClamp={1} lh={1.35}>
                     {topic.title}
                   </Text>
                 }
