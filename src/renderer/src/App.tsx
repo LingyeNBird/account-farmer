@@ -184,7 +184,7 @@ export function App() {
       </AppShell.Navbar>
 
       <AppShell.Main h="calc(100vh - 48px)" style={{ overflow: 'auto', position: 'relative' }}>
-        <Box key={view} className="fade-in">
+        <Box key={view} className="fade-in" h="100%">
           {view === 'workbench' && <Workbench />}
           {view === 'accounts' && <Accounts />}
           {view === 'prompts' && <Prompts />}
