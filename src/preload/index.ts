@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { IPC, type Api, type TopicProgress, type TurnDelta } from '@shared/ipc'
+import { IPC, type Api, type RefillFocus, type RefillState, type TopicProgress, type TurnDelta } from '@shared/ipc'
 
 const api: Api = {
   listAccounts: () => ipcRenderer.invoke(IPC.accountsList),
@@ -20,6 +20,21 @@ const api: Api = {
   cancelTopicGeneration: (accountId) => ipcRenderer.invoke(IPC.topicsCancel, accountId),
   archiveTopic: (accountId, topicId) => ipcRenderer.invoke(IPC.topicsArchive, accountId, topicId),
   activateTopic: (accountId, topicId) => ipcRenderer.invoke(IPC.topicsActivate, accountId, topicId),
+  refillTopics: (accountId) => ipcRenderer.invoke(IPC.topicsRefill, accountId),
+  onRefillState: (handler) => {
+    const listener = (_event: unknown, state: RefillState): void => handler(state)
+    ipcRenderer.on(IPC.refillState, listener)
+    return () => {
+      ipcRenderer.removeListener(IPC.refillState, listener)
+    }
+  },
+  onRefillFocus: (handler) => {
+    const listener = (_event: unknown, payload: RefillFocus): void => handler(payload)
+    ipcRenderer.on(IPC.refillFocus, listener)
+    return () => {
+      ipcRenderer.removeListener(IPC.refillFocus, listener)
+    }
+  },
   onTopicProgress: (handler) => {
     const listener = (_event: unknown, progress: TopicProgress): void => handler(progress)
     ipcRenderer.on(IPC.topicsProgress, listener)

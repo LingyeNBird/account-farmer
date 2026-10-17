@@ -18,6 +18,7 @@ type AppState = {
   session: Session | null
   turnStreaming: string | null
   turnLoading: boolean
+  refilling: boolean
   generating: TopicProgress | null
   error: string | null
   clearError: () => void
@@ -28,6 +29,7 @@ type AppState = {
   loadTopics: () => Promise<void>
   selectTopic: (id: string) => Promise<void>
   setTurnStreaming: (text: string | null) => void
+  setRefilling: (value: boolean) => void
   generateTurn: (aiReply: string) => Promise<void>
   endTopic: () => Promise<void>
   activateTopic: (topicId: string) => Promise<void>
@@ -61,6 +63,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   session: null,
   turnStreaming: null,
   turnLoading: false,
+  refilling: false,
   generating: null,
   error: null,
   clearError: () => set({ error: null }),
@@ -114,6 +117,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         set({ topics, topicsLoadedFor: accountId, selectedTopicId: next })
         if (next) await get().selectTopic(next)
         else set({ session: null })
+        if (topics.length > 0 && !topics.some((topic) => topic.status === 'pending')) {
+          await api.refillTopics(accountId)
+        }
       },
       (message) => set({ error: message })
     )
@@ -130,6 +136,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   setTurnStreaming: (text) => set({ turnStreaming: text }),
+
+  setRefilling: (value) => set({ refilling: value }),
 
   generateTurn: async (aiReply) => {
     const accountId = get().currentAccountId

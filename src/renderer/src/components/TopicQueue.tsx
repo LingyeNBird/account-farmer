@@ -1,4 +1,4 @@
-import { ActionIcon, Badge, Box, Group, NavLink, ScrollArea, Stack, Text } from '@mantine/core'
+import { ActionIcon, Badge, Box, Group, Loader, NavLink, ScrollArea, Stack, Text } from '@mantine/core'
 import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
 import { useState } from 'react'
 import type { Topic } from '@shared/types'
@@ -25,6 +25,7 @@ export function TopicQueue() {
   const topics = useAppStore((state) => state.topics)
   const selectedTopicId = useAppStore((state) => state.selectedTopicId)
   const selectTopic = useAppStore((state) => state.selectTopic)
+  const refilling = useAppStore((state) => state.refilling)
   const [page, setPage] = useState(0)
 
   const batches = groupBatches(topics)
@@ -33,6 +34,14 @@ export function TopicQueue() {
 
   return (
     <Stack gap={0} h="100%">
+      {refilling && (
+        <Group gap={6} px="sm" py={6} style={{ borderBottom: '1px solid #e6e6ea', background: '#fdf7ec' }}>
+          <Loader size={11} color="gray" />
+          <Text size="xs" c="dimmed">
+            生成中
+          </Text>
+        </Group>
+      )}
       {batches.length > 0 && (
         <Group justify="center" gap="xs" p={6} style={{ borderBottom: '1px solid #e6e6ea' }}>
           <ActionIcon

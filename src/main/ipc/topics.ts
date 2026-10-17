@@ -1,5 +1,6 @@
 import { IPC } from '@shared/ipc'
 import { buildModel } from '../services/llm'
+import { maybeStartRefill, startRefill } from '../services/refill'
 import { generateTopics } from '../services/topicBatch'
 import { getApiKey } from '../store/secrets'
 import { loadSettings } from '../store/settings'
@@ -54,6 +55,19 @@ export function registerTopicHandlers(): void {
     controllers.get(accountId)?.abort()
   })
 
-  handle(IPC.topicsArchive, (accountId: string, topicId: string) => archiveTopic(accountId, topicId))
-  handle(IPC.topicsActivate, (accountId: string, topicId: string) => activateTopic(accountId, topicId))
+  handle(IPC.topicsArchive, async (accountId: string, topicId: string) => {
+    const topics = await archiveTopic(accountId, topicId)
+    maybeStartRefill(accountId)
+    return topics
+  })
+
+  handle(IPC.topicsActivate, async (accountId: string, topicId: string) => {
+    const topics = await activateTopic(accountId, topicId)
+    maybeStartRefill(accountId)
+    return topics
+  })
+
+  handle(IPC.topicsRefill, async (accountId: string) => {
+    startRefill(accountId)
+  })
 }

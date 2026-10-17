@@ -31,6 +31,9 @@ export const IPC = {
   topicsCancel: 'topics:cancel',
   topicsArchive: 'topics:archive',
   topicsActivate: 'topics:activate',
+  topicsRefill: 'topics:refill',
+  refillState: 'topics:refill-state',
+  refillFocus: 'topics:refill-focus',
   topicsProgress: 'topics:progress',
   sessionGet: 'session:get',
   sessionGenerate: 'session:generate',
@@ -43,6 +46,15 @@ export type TurnDelta = {
   accountId: string
   topicId: string
   text: string
+}
+
+export type RefillState = {
+  accountId: string
+  state: 'running' | 'done' | 'failed'
+}
+
+export type RefillFocus = {
+  accountId: string
 }
 
 export type TopicProgress = {
@@ -71,6 +83,9 @@ export type Api = {
   cancelTopicGeneration: (accountId: string) => Promise<IpcResult<void>>
   archiveTopic: (accountId: string, topicId: string) => Promise<IpcResult<Topic[]>>
   activateTopic: (accountId: string, topicId: string) => Promise<IpcResult<Topic[]>>
+  refillTopics: (accountId: string) => Promise<IpcResult<void>>
+  onRefillState: (handler: (state: RefillState) => void) => () => void
+  onRefillFocus: (handler: (payload: RefillFocus) => void) => () => void
   onTopicProgress: (handler: (progress: TopicProgress) => void) => () => void
   getSession: (accountId: string, topicId: string) => Promise<IpcResult<Session>>
   generateTurn: (accountId: string, topicId: string, aiReply: string) => Promise<IpcResult<Turn>>

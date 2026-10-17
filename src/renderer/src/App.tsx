@@ -66,6 +66,27 @@ export function App() {
     []
   )
 
+  useEffect(
+    () =>
+      api.onRefillState((event) => {
+        const state = useAppStore.getState()
+        if (event.accountId !== state.currentAccountId) return
+        state.setRefilling(event.state === 'running')
+        if (event.state === 'done') void state.loadTopics()
+      }),
+    []
+  )
+
+  useEffect(
+    () =>
+      api.onRefillFocus((event) => {
+        const state = useAppStore.getState()
+        if (event.accountId !== state.currentAccountId) return
+        void state.loadTopics()
+      }),
+    []
+  )
+
   const attempted = useRef<string | null>(null)
   const configured = isConfigured(settings, hasKey)
 

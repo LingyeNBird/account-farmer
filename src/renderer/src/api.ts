@@ -1,4 +1,4 @@
-import type { IpcResult, TopicProgress, TurnDelta } from '@shared/ipc'
+import type { IpcResult, RefillFocus, RefillState, TopicProgress, TurnDelta } from '@shared/ipc'
 import type {
   AccountsState,
   AccountSummary,
@@ -41,6 +41,11 @@ export const api = {
     unwrap(window.api.archiveTopic(accountId, topicId)),
   activateTopic: (accountId: string, topicId: string): Promise<Topic[]> =>
     unwrap(window.api.activateTopic(accountId, topicId)),
+  refillTopics: (accountId: string): Promise<void> => unwrap(window.api.refillTopics(accountId)),
+  onRefillState: (handler: (state: RefillState) => void): (() => void) =>
+    window.api.onRefillState(handler),
+  onRefillFocus: (handler: (payload: RefillFocus) => void): (() => void) =>
+    window.api.onRefillFocus(handler),
   onTopicProgress: (handler: (progress: TopicProgress) => void): (() => void) =>
     window.api.onTopicProgress(handler),
   getSession: (accountId: string, topicId: string): Promise<Session> =>
