@@ -1,4 +1,4 @@
-import type { Api, AssistantMessage, Message, Model, UserMessage } from '@mariozechner/pi-ai'
+import type { Api, AssistantMessage, Message, Model, Usage, UserMessage } from '@mariozechner/pi-ai'
 import type { ReasoningEffort, Session, Turn } from '@shared/types'
 import { ProtocolError, parseTurn, streamingText, type ParsedTurn } from '@shared/protocol'
 import { loadPrompts } from '../store/prompts'
@@ -74,7 +74,7 @@ function exampleHistory(model: Model<Api>): Message[] {
   })
 }
 
-async function streamOnce(options: RunOptions): Promise<string> {
+async function streamOnce(options: RunOptions): Promise<{ raw: string; usage: Usage }> {
   const { streamSimple } = await loadPiAi()
   const effort =
     options.model.reasoning && options.effort && options.effort !== 'off' ? options.effort : undefined
@@ -111,7 +111,7 @@ async function streamOnce(options: RunOptions): Promise<string> {
   const final = await events.result()
   if (final.stopReason === 'aborted') throw new Error('已取消')
   if (final.stopReason === 'error') throw new Error(final.errorMessage ?? '生成失败')
-  return raw
+  return { raw, usage: final.usage }
 }
 
 export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> {
@@ -156,7 +156,7 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
     round: session.turns.length + 1
   })
 
-  const run = (extra: string): Promise<string> =>
+  const run = (extra: string): Promise<{ raw: string; usage: Usage }> =>
     streamOnce({
       model,
       apiKey,
@@ -167,7 +167,9 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
       onDelta: options.onDelta
     })
 
-  let raw = await run('')
+  let attempt = await run('')
+  let raw = attempt.raw
+  let usage = attempt.usage
   let usedSystemPrompt = systemPrompt
   let parsed: ParsedTurn
   try {
@@ -183,7 +185,23 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
       '继续对话：输出 EN、ZH（反馈可选）。结束：整轮只输出 <<<END>>> 与 <<</END>>> 中间的一行理由。'
     ].join('\n')
     usedSystemPrompt = `${systemPrompt}\n\n${correction}`
-    raw = await run(correction)
+    attempt = await run(correction)
+    raw = attempt.raw
+    usage = {
+      ...usage,
+      input: usage.input + attempt.usage.input,
+      output: usage.output + attempt.usage.output,
+      cacheRead: usage.cacheRead + attempt.usage.cacheRead,
+      cacheWrite: usage.cacheWrite + attempt.usage.cacheWrite,
+      totalTokens: usage.totalTokens + attempt.usage.totalTokens,
+      cost: {
+        input: usage.cost.input + attempt.usage.cost.input,
+        output: usage.cost.output + attempt.usage.cost.output,
+        cacheRead: usage.cost.cacheRead + attempt.usage.cost.cacheRead,
+        cacheWrite: usage.cost.cacheWrite + attempt.usage.cost.cacheWrite,
+        total: usage.cost.total + attempt.usage.cost.total
+      }
+    }
     try {
       parsed = parseTurn(raw)
     } catch (retryError) {
@@ -198,6 +216,13 @@ export async function generateTurn(options: GenerateTurnOptions): Promise<Turn> 
     rawReply: raw,
     exampleCount: FEWSHOT_MESSAGES.length,
     exampleChars: FEWSHOT_MESSAGES.reduce((total, item) => total + item.content.length, 0),
+    usage: {
+      input: usage.input,
+      output: usage.output,
+      cacheRead: usage.cacheRead,
+      cacheWrite: usage.cacheWrite,
+      totalTokens: usage.totalTokens
+    },
     params: {
       provider: model.provider,
       model: model.id,

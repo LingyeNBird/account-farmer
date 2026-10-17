@@ -346,6 +346,16 @@ export function ResultCard({
               {turn.debug.params.reasoning ?? '未开启'} · maxTokens {turn.debug.params.maxTokens} · 示例{' '}
               {turn.debug.exampleCount} 条（{turn.debug.exampleChars} 字符）
             </Text>
+            {turn.debug.usage && (
+              <Text size="xs" c="dimmed">
+                {(() => {
+                  const usage = turn.debug.usage
+                  const prompt = usage.input + usage.cacheRead + usage.cacheWrite
+                  const rate = prompt > 0 ? (usage.cacheRead / prompt) * 100 : 0
+                  return `缓存命中 ${usage.cacheRead.toLocaleString()} / ${prompt.toLocaleString()}（${rate.toFixed(1)}%）· 未命中输入 ${usage.input.toLocaleString()} · 输出 ${usage.output.toLocaleString()}`
+                })()}
+              </Text>
+            )}
 
             <Text size="sm" fw={600}>
               系统提示词

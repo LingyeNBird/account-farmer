@@ -103,6 +103,13 @@ export type TurnDebug = {
   rawReply: string
   exampleCount: number
   exampleChars: number
+  usage: {
+    input: number
+    output: number
+    cacheRead: number
+    cacheWrite: number
+    totalTokens: number
+  }
   params: {
     provider: string
     model: string
