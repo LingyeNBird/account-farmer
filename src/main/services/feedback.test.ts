@@ -64,3 +64,53 @@ describe('nextCadence', () => {
     expect(res.rounds).toBe(2)
   })
 })
+
+function seeded(seed: number): () => number {
+  let value = seed
+  return () => {
+    value = (value * 1103515245 + 12345) % 2147483648
+    return value / 2147483648
+  }
+}
+
+function runRounds(
+  rounds: number,
+  limits: { intervalMin: number; intervalMax: number },
+  random: () => number
+): number[] {
+  let cadence = EMPTY_CADENCE
+  const suggestedAt: number[] = []
+  for (let round = 1; round <= rounds; round += 1) {
+    const result = nextCadence(cadence, limits, random)
+    cadence = result.cadence
+    if (result.suggest) suggestedAt.push(round)
+  }
+  return suggestedAt
+}
+
+describe('长期节奏', () => {
+  it('每次建议之间的间隔都落在上下限内', () => {
+    const suggested = runRounds(200, { intervalMin: 2, intervalMax: 5 }, seeded(7))
+    expect(suggested.length).toBeGreaterThan(20)
+
+    let previous = 0
+    for (const round of suggested) {
+      const gap = round - previous
+      expect(gap).toBeGreaterThanOrEqual(2)
+      expect(gap).toBeLessThanOrEqual(5)
+      previous = round
+    }
+  })
+
+  it('上下限相等时严格每 N 轮建议一次', () => {
+    const suggested = runRounds(30, { intervalMin: 3, intervalMax: 3 }, seeded(1))
+    expect(suggested).toEqual([3, 6, 9, 12, 15, 18, 21, 24, 27, 30])
+  })
+
+  it('随机数取边界值也不越界', () => {
+    const lows = runRounds(40, { intervalMin: 2, intervalMax: 5 }, () => 0)
+    const highs = runRounds(40, { intervalMin: 2, intervalMax: 5 }, () => 1)
+    expect(lows).toEqual([2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40])
+    expect(highs).toEqual([5, 10, 15, 20, 25, 30, 35, 40])
+  })
+})
