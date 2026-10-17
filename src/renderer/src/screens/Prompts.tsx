@@ -18,6 +18,7 @@ import {
   PROMPT_KEYS,
   PROMPT_LABELS,
   PROMPT_SCOPES,
+  PROMPT_TAGS,
   PROMPT_VARIABLES,
   type PromptKey
 } from '@shared/defaults'
@@ -42,6 +43,7 @@ export function Prompts() {
   const isDefault = saved === DEFAULT_PROMPTS[selected]
   const scope = PROMPT_SCOPES[selected]
   const variables = PROMPT_VARIABLES[selected]
+  const tags = PROMPT_TAGS[selected]
   const condition = PROMPT_CONDITIONS[selected]
 
   const select = (key: PromptKey): void => {
@@ -142,6 +144,18 @@ export function Prompts() {
                     {variables.map((name) => (
                       <Badge key={name} variant="light" color="gray" radius="sm">
                         {`{{${name}}}`}
+                      </Badge>
+                    ))}
+                  </Group>
+                )}
+                {tags.length > 0 && (
+                  <Group gap={6} mt={variables.length > 0 ? 6 : 'xs'}>
+                    <Text size="xs" c="dimmed">
+                      固定标记
+                    </Text>
+                    {tags.map((tag) => (
+                      <Badge key={tag} variant="light" color="indigo" radius="sm">
+                        {tag}
                       </Badge>
                     ))}
                   </Group>

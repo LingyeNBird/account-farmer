@@ -36,6 +36,15 @@ export const PROMPT_CONDITIONS: Partial<Record<PromptKey, string>> = {
   feedbackFallback: '连续多轮没有反馈时自动追加'
 }
 
+/** 由程序固定解析的标记，改写它们会导致解析失败。 */
+export const PROMPT_TAGS: Record<PromptKey, string[]> = {
+  system: ['<<<EN>>>', '<<<ZH>>>', '<<<FB_VERDICT>>>', '<<<FB_EN>>>', '<<<FB_ZH>>>', '<<<END>>>'],
+  turn: [],
+  topics: [],
+  feedbackFallback: ['<<<FB_VERDICT>>>', '<<<FB_EN>>>', '<<<FB_ZH>>>'],
+  termination: ['<<<END>>>']
+}
+
 export const DEFAULT_PROMPTS: Record<PromptKey, string> = {
   system: `你是一名技术讨论教练，帮用户与另一个模型进行高质量的技术对话。
 
