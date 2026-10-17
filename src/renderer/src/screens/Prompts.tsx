@@ -6,6 +6,7 @@ import {
   Group,
   NavLink,
   Paper,
+  ScrollArea,
   Stack,
   Text,
   Textarea
@@ -111,12 +112,28 @@ export function Prompts() {
               </Group>
 
               <Box px="md" py="sm">
-                <Textarea
-                  value={draft}
-                  onChange={(event) => setDraft(event.currentTarget.value)}
-                  autosize={false}
-                  styles={{ input: { height: 420, fontFamily: 'Consolas, monospace', fontSize: 13 } }}
-                />
+                <Box style={{ border: '1px solid #e0e0e5', borderRadius: 8 }}>
+                  <ScrollArea h={420} type="auto">
+                    <Box p={10}>
+                      <Textarea
+                        value={draft}
+                        onChange={(event) => setDraft(event.currentTarget.value)}
+                        autosize
+                        minRows={14}
+                        spellCheck={false}
+                        variant="unstyled"
+                        styles={{
+                          input: {
+                            fontFamily: "'Cascadia Mono', Consolas, 'Microsoft YaHei UI Light', monospace",
+                            fontSize: 15,
+                            lineHeight: 1.7,
+                            padding: 0
+                          }
+                        }}
+                      />
+                    </Box>
+                  </ScrollArea>
+                </Box>
                 {variables.length > 0 && (
                   <Group gap={6} mt="xs">
                     <Text size="xs" c="dimmed">
