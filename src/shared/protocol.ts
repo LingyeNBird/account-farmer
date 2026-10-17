@@ -59,6 +59,17 @@ function readBlocks(raw: string): Map<Marker, string> {
   return blocks
 }
 
+/** 取出 <<<TAG>>> 与 <<</TAG>>> 之间的内容，块外内容忽略。 */
+export function extractTagged(raw: string, tag: string): string {
+  const open = `<<<${tag}>>>`
+  const close = `<<</${tag}>>>`
+  const start = raw.indexOf(open)
+  if (start === -1) throw new ProtocolError(`缺少 ${open} 标记`)
+  const end = raw.lastIndexOf(close)
+  if (end === -1 || end < start) throw new ProtocolError(`缺少 ${close} 标记`)
+  return raw.slice(start + open.length, end).trim()
+}
+
 export function parseTurn(raw: string): ParsedTurn {
   const blocks = readBlocks(raw)
   const endBlock = blocks.get('END')

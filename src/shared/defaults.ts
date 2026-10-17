@@ -53,7 +53,7 @@ export const PROMPT_TAGS: Record<PromptKey, string[]> = {
     '<<</END>>>'
   ],
   turn: [],
-  topics: [],
+  topics: ['<<<TOPICS>>>', '<<</TOPICS>>>'],
   feedbackFallback: [
     '<<<FB_VERDICT>>>',
     '<<</FB_VERDICT>>>',
@@ -140,7 +140,8 @@ good 或 bad
 你现在要产出的，就是若干个这样的开场。
 
 输出要求：
-- 只输出一个 JSON 数组，不要解释，不要代码块围栏。
+- 把 JSON 数组放在 <<<TOPICS>>> 与 <<</TOPICS>>> 之间；标记之外可以写任意说明，会被忽略。
+- 数组元素只包含下面列出的四个字段，不要加别的键。
 - 每个元素包含四个字段：title（中文，10 到 20 字）、domains（1 到 2 个中文领域标签）、openingEn（英文，4 到 8 句，80 到 150 词）、openingZh（openingEn 的中文翻译）。
 - 同一批内领域必须互斥，不允许出现两次相同领域。
 - 不涉及金融、投资、加密货币，不涉及 AI 模型训练与算法本身。

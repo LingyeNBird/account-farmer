@@ -1,5 +1,6 @@
 import type { Api, AssistantMessage, Model } from '@mariozechner/pi-ai'
 import type { TopicDraft } from '@shared/types'
+import { extractTagged } from '@shared/protocol'
 import { loadPrompts } from '../store/prompts'
 
 const loadPiAi = () => import('@mariozechner/pi-ai')
@@ -22,12 +23,7 @@ function extractText(message: AssistantMessage): string {
     .join('')
 }
 
-function stripFence(text: string): string {
-  const start = text.indexOf('[')
-  const end = text.lastIndexOf(']')
-  if (start === -1 || end === -1 || end < start) throw new Error('主题输出不是 JSON 数组')
-  return text.slice(start, end + 1)
-}
+
 
 function isDraft(value: unknown): value is TopicDraft {
   if (typeof value !== 'object' || value === null) return false
@@ -88,7 +84,7 @@ export async function generateTopics(options: GenerateOptions): Promise<TopicDra
 
     if (message.stopReason === 'error') throw new Error(message.errorMessage ?? '主题生成失败')
 
-    const raw = stripFence(extractText(message))
+    const raw = extractTagged(extractText(message), 'TOPICS')
     const parsed: unknown = JSON.parse(raw)
     if (!Array.isArray(parsed)) throw new Error('主题输出不是数组')
 

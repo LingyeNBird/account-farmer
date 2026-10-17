@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ProtocolError, parseTurn, streamingText } from './protocol'
+import { ProtocolError, extractTagged, parseTurn, streamingText } from './protocol'
 
 const MESSAGE = `<<<EN>>>
 Sortedness only holds inside a block, so the encoder decides per block anyway.
@@ -92,6 +92,21 @@ describe('parseTurn', () => {
 
   it('终止轮缺少理由时仍以终止为准', () => {
     expect(parseTurn('<<<END>>>\n<<</END>>>\n')).toEqual({ kind: 'end', reason: '' })
+  })
+})
+
+describe('extractTagged', () => {
+  it('取出标记之间的内容，忽略块外文字', () => {
+    const raw = '先说明一下\n<<<TOPICS>>>\n[{"a":1}]\n<<</TOPICS>>>\n后面还有话'
+    expect(extractTagged(raw, 'TOPICS')).toBe('[{"a":1}]')
+  })
+
+  it('缺少开始标记时报错', () => {
+    expect(() => extractTagged('[{"a":1}]\n<<</TOPICS>>>', 'TOPICS')).toThrow('缺少 <<<TOPICS>>> 标记')
+  })
+
+  it('缺少结束标记时报错', () => {
+    expect(() => extractTagged('<<<TOPICS>>>\n[{"a":1}]', 'TOPICS')).toThrow('缺少 <<</TOPICS>>> 标记')
   })
 })
 
