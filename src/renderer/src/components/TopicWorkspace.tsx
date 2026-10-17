@@ -173,7 +173,7 @@ export function TopicWorkspace() {
               zh={topic.openingZh}
               onSave={(en, zh) => void updateTopicOpening(topic.id, en, zh)}
             />
-            {pasteCard}
+            {inputPage && pasteCard}
           </>
         )}
       </Stack>
