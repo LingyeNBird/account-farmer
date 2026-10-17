@@ -55,7 +55,7 @@ export const DEFAULT_PROMPTS: Record<PromptKey, string> = {
 - 禁止模板句式，例如 "X — that's Y"、"not just X, but Y"、"let's dive in"。
 - 禁止空泛的开场和总结。
 
-输出格式（块外不得有任何内容）。
+输出格式：下面这些块必须完整、正确，标记行原样保留。需要写分析或说明就写在第一个块之前。
 
 常规发言按顺序输出两块：
 <<<EN>>>

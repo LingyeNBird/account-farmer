@@ -46,6 +46,11 @@ describe('parseTurn', () => {
     expect(parsed.kind === 'message' && parsed.feedback?.verdict).toBe('good')
   })
 
+  it('第一个块之前的分析文字不影响解析', () => {
+    const parsed = parseTurn('先看一下对方的核心分歧……\n<<<EN>>>\nA claim.\n<<<ZH>>>\n一个主张。\n')
+    expect(parsed).toEqual({ kind: 'message', en: 'A claim.', zh: '一个主张。' })
+  })
+
   it('缺少中文对照时报错', () => {
     expect(() => parseTurn('<<<EN>>>\nA claim.\n')).toThrow(ProtocolError)
   })
